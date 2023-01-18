@@ -2,17 +2,16 @@
   "schemaVersion": 1,
   "id": "moremcmeta_properties_reader_plugin",
   "version": "${modVersion}",
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "MoreMcmeta Properties Reader Plugin",
+  "description": "Default plugin for MoreMcmeta that reads OptiFine (.properties) metadata files.",
   "authors": [
-    "AUTHOR_NAME"
+    "soir20"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/MoreMcmeta",
+    "sources": "https://github.com/MoreMcmeta/properties-reader-plugin"
   },
-  "license": "Insert License Here",
-  "icon": "assets/examplemod/icon.png",
+  "license": "LGPL-3.0",
   "environment": "*",
   "entrypoints": {
     "moremcmeta-client": [
@@ -20,7 +19,6 @@
     ]
   },
   "depends": {
-    "fabric": "*",
     "minecraft": ">=${minecraftVersion}",
     "moremcmeta": "${minMoreMcmetaVersion}"
   }

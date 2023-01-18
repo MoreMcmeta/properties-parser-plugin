@@ -1,15 +1,14 @@
 modLoader = "javafml"
 loaderVersion = "[${loaderVersion},)"
-#issueTrackerURL = ""
-license = "Insert License Here"
+license = "LGPL-3.0"
 
 [[mods]]
 modId = "moremcmeta_properties_reader_plugin"
 version = "${modVersion}"
-displayName = "Example Mod"
-authors = "AUTHOR_NAME"
+displayName = "MoreMcmeta Properties Reader Plugin"
+authors = "soir20"
 description = '''
-This is an example description! Tell everyone what your mod is about!
+Default plugin for MoreMcmeta that reads OptiFine (.properties) metadata files.
 '''
 #logoFile = ""
 
