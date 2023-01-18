@@ -4,7 +4,7 @@ loaderVersion = "[${loaderVersion},)"
 license = "Insert License Here"
 
 [[mods]]
-modId = "myplugin"
+modId = "moremcmeta_properties_reader_plugin"
 version = "${modVersion}"
 displayName = "Example Mod"
 authors = "AUTHOR_NAME"
@@ -13,21 +13,21 @@ This is an example description! Tell everyone what your mod is about!
 '''
 #logoFile = ""
 
-[[dependencies.myplugin]]
+[[dependencies.moremcmeta_properties_reader_plugin]]
 modId = "moremcmeta"
 mandatory = true
 versionRange = "[${minMoreMcmetaVersion},)"
 ordering = "NONE"
 side = "CLIENT"
 
-[[dependencies.myplugin]]
+[[dependencies.moremcmeta_properties_reader_plugin]]
 modId = "forge"
 mandatory = true
 versionRange = "[${loaderVersion},)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.myplugin]]
+[[dependencies.moremcmeta_properties_reader_plugin]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[${minecraftVersion},)"

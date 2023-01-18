@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "myplugin",
+  "id": "moremcmeta_properties_reader_plugin",
   "version": "${modVersion}",
   "name": "Example Mod",
   "description": "This is an example description! Tell everyone what your mod is about!",
@@ -15,8 +15,8 @@
   "icon": "assets/examplemod/icon.png",
   "environment": "*",
   "entrypoints": {
-    "client": [
-      "io.github.myorg.myplugin.fabric.ExampleModFabric"
+    "moremcmeta-client": [
+      "io.github.moremcmeta.propertiesreaderplugin.fabric.PropertiesReaderPluginFabric"
     ]
   },
   "depends": {
