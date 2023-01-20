@@ -97,7 +97,7 @@ public class PropertiesMetadataReader implements MetadataReader {
         ResourceLocation from = convertToLocation(expandPath(require(props, "from")));
         ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder = new ImmutableMap.Builder<>();
 
-        putIfValPresent(builder, props, "to", "to", PropertiesMetadataReader::expandPath);
+        putIfValPresent(builder, props, "to", "base", PropertiesMetadataReader::expandPath);
         putIfValPresent(builder, props, "x", "x", Function.identity());
         putIfValPresent(builder, props, "y", "y", Function.identity());
         putIfValPresent(builder, props, "w", "width", Function.identity());
