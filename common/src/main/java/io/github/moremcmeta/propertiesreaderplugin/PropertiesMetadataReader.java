@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
  */
 public class PropertiesMetadataReader implements MetadataReader {
     private static final ResourceLocation EMISSIVE_CONFIG = new ResourceLocation("optifine/emissive.properties");
+    private static final String ANIMATION_PATH_START = "optifine/anim/";
 
     @Override
     public Map<ResourceLocation, MetadataView> read(ResourceLocation metadataLocation, InputStream metadataStream,
@@ -41,7 +42,7 @@ public class PropertiesMetadataReader implements MetadataReader {
             return readEmissiveFile(props, resourceSearcher);
         }
 
-        if (metadataLocation.getPath().startsWith("optifine/anim/")) {
+        if (metadataLocation.getPath().startsWith(ANIMATION_PATH_START)) {
             return readAnimationFile(props);
         }
 
