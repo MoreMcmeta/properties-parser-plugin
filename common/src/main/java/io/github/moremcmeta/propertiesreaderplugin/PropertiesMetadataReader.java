@@ -112,6 +112,11 @@ public class PropertiesMetadataReader implements MetadataReader {
         );
     }
 
+    /**
+     * Builds a list of animation frames, if properties for individual frames is present.
+     * @param props     all properties read
+     * @return list of animation frames or {@link Optional#empty()} if there are no individual frame settings
+     */
     private static Optional<PropertiesMetadataView.PropertyOrSubView> buildFrameList(Properties props) {
         Optional<Integer> maxDefinedTick = props.stringPropertyNames().stream()
                 .filter((propName) -> propName.matches("(duration|tile)\\.\\d+"))
