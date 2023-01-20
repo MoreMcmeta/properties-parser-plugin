@@ -15,14 +15,14 @@ import static java.util.Objects.requireNonNull;
  * @author soir20
  */
 public class PropertiesMetadataView implements MetadataView {
-    private final Map<String, PropertyOrSubView> PROPERTIES;
-    private final List<PropertyOrSubView> VALUES_BY_INDEX;
+    private final Map<String, Value> PROPERTIES;
+    private final List<Value> VALUES_BY_INDEX;
 
     /**
      * Creates a new metadata view with the given properties at the root.
      * @param root              the root properties object
      */
-    public PropertiesMetadataView(ImmutableMap<String, PropertyOrSubView> root) {
+    public PropertiesMetadataView(ImmutableMap<String, Value> root) {
         PROPERTIES = requireNonNull(root, "Properties root cannot be null");
         VALUES_BY_INDEX = new ArrayList<>(PROPERTIES.values());
     }
@@ -209,7 +209,7 @@ public class PropertiesMetadataView implements MetadataView {
             return Optional.empty();
         }
 
-        PropertyOrSubView value = PROPERTIES.get(key);
+        Value value = PROPERTIES.get(key);
         if (value.IS_PROPERTY) {
             return Optional.empty();
         }
@@ -223,7 +223,7 @@ public class PropertiesMetadataView implements MetadataView {
             return Optional.empty();
         }
 
-        PropertyOrSubView value = VALUES_BY_INDEX.get(index);
+        Value value = VALUES_BY_INDEX.get(index);
         if (value.IS_PROPERTY) {
             return Optional.empty();
         }
@@ -254,16 +254,16 @@ public class PropertiesMetadataView implements MetadataView {
      * Enforces valid inputs to the view at compile-time.
      * @author soir20
      */
-    public static final class PropertyOrSubView {
+    public static final class Value {
         private final boolean IS_PROPERTY;
         private final String PROPERTY;
-        private final ImmutableMap<String, PropertyOrSubView> SUB_VIEW;
+        private final ImmutableMap<String, Value> SUB_VIEW;
 
         /**
          * Creates a new wrapper with a string property.
          * @param property      property to store
          */
-        public PropertyOrSubView(String property) {
+        public Value(String property) {
             PROPERTY = requireNonNull(property, "Property cannot be null");
             SUB_VIEW = null;
             IS_PROPERTY = true;
@@ -273,7 +273,7 @@ public class PropertiesMetadataView implements MetadataView {
          * Creates a new wrapper with a sub view.
          * @param subView       sub view to store
          */
-        public PropertyOrSubView(ImmutableMap<String, PropertyOrSubView> subView) {
+        public Value(ImmutableMap<String, Value> subView) {
             PROPERTY = null;
             SUB_VIEW = requireNonNull(subView, "Sub view cannot be null");
             IS_PROPERTY = false;

@@ -38,10 +38,10 @@ public class PropertiesMetadataViewTest {
 
     @Test
     public void size_SingleLevelKeys_NumberOfKeys() {
-        ImmutableMap<String, PropertiesMetadataView.PropertyOrSubView> root = ImmutableMap.of(
-                "hello", new PropertiesMetadataView.PropertyOrSubView("10"),
-                "world", new PropertiesMetadataView.PropertyOrSubView("true"),
-                "test", new PropertiesMetadataView.PropertyOrSubView("good morning")
+        ImmutableMap<String, PropertiesMetadataView.Value> root = ImmutableMap.of(
+                "hello", new PropertiesMetadataView.Value("10"),
+                "world", new PropertiesMetadataView.Value("true"),
+                "test", new PropertiesMetadataView.Value("good morning")
         );
         PropertiesMetadataView view = new PropertiesMetadataView(root);
         assertEquals(3, view.size());
@@ -49,13 +49,13 @@ public class PropertiesMetadataViewTest {
 
     @Test
     public void size_MultiLevelKeys_NumberOfTopLevelKeys() {
-        ImmutableMap<String, PropertiesMetadataView.PropertyOrSubView> root = ImmutableMap.of(
-                "hello", new PropertiesMetadataView.PropertyOrSubView("10"),
-                "world", new PropertiesMetadataView.PropertyOrSubView("true"),
-                "test", new PropertiesMetadataView.PropertyOrSubView("good morning"),
-                "testing", new PropertiesMetadataView.PropertyOrSubView(ImmutableMap.of(
-                        "metadata", new PropertiesMetadataView.PropertyOrSubView("20"),
-                        "view", new PropertiesMetadataView.PropertyOrSubView("false")
+        ImmutableMap<String, PropertiesMetadataView.Value> root = ImmutableMap.of(
+                "hello", new PropertiesMetadataView.Value("10"),
+                "world", new PropertiesMetadataView.Value("true"),
+                "test", new PropertiesMetadataView.Value("good morning"),
+                "testing", new PropertiesMetadataView.Value(ImmutableMap.of(
+                        "metadata", new PropertiesMetadataView.Value("20"),
+                        "view", new PropertiesMetadataView.Value("false")
                 ))
         );
         
@@ -71,10 +71,10 @@ public class PropertiesMetadataViewTest {
 
     @Test
     public void keys_SingleLevelKeys_AllKeys() {
-        ImmutableMap<String, PropertiesMetadataView.PropertyOrSubView> root = ImmutableMap.of(
-                "hello", new PropertiesMetadataView.PropertyOrSubView("10"),
-                "world", new PropertiesMetadataView.PropertyOrSubView("true"),
-                "test", new PropertiesMetadataView.PropertyOrSubView("good morning")
+        ImmutableMap<String, PropertiesMetadataView.Value> root = ImmutableMap.of(
+                "hello", new PropertiesMetadataView.Value("10"),
+                "world", new PropertiesMetadataView.Value("true"),
+                "test", new PropertiesMetadataView.Value("good morning")
         );
         PropertiesMetadataView view = new PropertiesMetadataView(root);
         assertEquals(List.of("hello", "world", "test"), collectKeys(view.keys()));
@@ -82,13 +82,13 @@ public class PropertiesMetadataViewTest {
 
     @Test
     public void keys_MultiLevelKeys_TopLevelKeys() {
-        ImmutableMap<String, PropertiesMetadataView.PropertyOrSubView> root = ImmutableMap.of(
-                "hello", new PropertiesMetadataView.PropertyOrSubView("10"),
-                "world", new PropertiesMetadataView.PropertyOrSubView("true"),
-                "test", new PropertiesMetadataView.PropertyOrSubView("good morning"),
-                "testing", new PropertiesMetadataView.PropertyOrSubView(ImmutableMap.of(
-                        "metadata", new PropertiesMetadataView.PropertyOrSubView("20"),
-                        "view", new PropertiesMetadataView.PropertyOrSubView("false")
+        ImmutableMap<String, PropertiesMetadataView.Value> root = ImmutableMap.of(
+                "hello", new PropertiesMetadataView.Value("10"),
+                "world", new PropertiesMetadataView.Value("true"),
+                "test", new PropertiesMetadataView.Value("good morning"),
+                "testing", new PropertiesMetadataView.Value(ImmutableMap.of(
+                        "metadata", new PropertiesMetadataView.Value("20"),
+                        "view", new PropertiesMetadataView.Value("false")
                 ))
         );
         
@@ -1407,10 +1407,10 @@ public class PropertiesMetadataViewTest {
 
     @Test
     public void booleanValueString_TrueString_CaseInsensitive() {
-        ImmutableMap<String, PropertiesMetadataView.PropertyOrSubView> root = ImmutableMap.of(
-                "lowercase", new PropertiesMetadataView.PropertyOrSubView("true"),
-                "uppercase", new PropertiesMetadataView.PropertyOrSubView("TRUE"),
-                "mixed case", new PropertiesMetadataView.PropertyOrSubView("TrUe")
+        ImmutableMap<String, PropertiesMetadataView.Value> root = ImmutableMap.of(
+                "lowercase", new PropertiesMetadataView.Value("true"),
+                "uppercase", new PropertiesMetadataView.Value("TRUE"),
+                "mixed case", new PropertiesMetadataView.Value("TrUe")
         );
         PropertiesMetadataView view = new PropertiesMetadataView(root);
         assertTrue(view.booleanValue("lowercase").orElseThrow());
@@ -1420,10 +1420,10 @@ public class PropertiesMetadataViewTest {
 
     @Test
     public void booleanValueIndex_TrueString_CaseInsensitive() {
-        ImmutableMap<String, PropertiesMetadataView.PropertyOrSubView> root = ImmutableMap.of(
-                "lowercase", new PropertiesMetadataView.PropertyOrSubView("true"),
-                "uppercase", new PropertiesMetadataView.PropertyOrSubView("TRUE"),
-                "mixed case", new PropertiesMetadataView.PropertyOrSubView("TrUe")
+        ImmutableMap<String, PropertiesMetadataView.Value> root = ImmutableMap.of(
+                "lowercase", new PropertiesMetadataView.Value("true"),
+                "uppercase", new PropertiesMetadataView.Value("TRUE"),
+                "mixed case", new PropertiesMetadataView.Value("TrUe")
         );
         PropertiesMetadataView view = new PropertiesMetadataView(root);
         assertTrue(view.booleanValue(0).orElseThrow());
@@ -1627,33 +1627,33 @@ public class PropertiesMetadataViewTest {
         );
     }
 
-    private ImmutableMap<String, PropertiesMetadataView.PropertyOrSubView> makeDemoMap() {
+    private ImmutableMap<String, PropertiesMetadataView.Value> makeDemoMap() {
         return addAllTypeVals(
                 addAllTypeVals(ImmutableMap.of(), 1),
                 0
         );
     }
 
-    private ImmutableMap<String, PropertiesMetadataView.PropertyOrSubView> addAllTypeVals(
-            ImmutableMap<String, PropertiesMetadataView.PropertyOrSubView> subView,
+    private ImmutableMap<String, PropertiesMetadataView.Value> addAllTypeVals(
+            ImmutableMap<String, PropertiesMetadataView.Value> subView,
             int level
     ) {
-        ImmutableMap.Builder<String, PropertiesMetadataView.PropertyOrSubView> root = new ImmutableMap.Builder<>();
+        ImmutableMap.Builder<String, PropertiesMetadataView.Value> root = new ImmutableMap.Builder<>();
 
-        root.put("string val" + level, new PropertiesMetadataView.PropertyOrSubView("hello world"));
-        root.put("pos int val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(Integer.MAX_VALUE)));
-        root.put("neg int val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(Integer.MIN_VALUE)));
-        root.put("pos long val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(Long.MAX_VALUE)));
-        root.put("neg long val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(Long.MIN_VALUE)));
-        root.put("pos int >64-bits val" + level, new PropertiesMetadataView.PropertyOrSubView(new BigInteger("9223372036854775808").toString()));
-        root.put("neg int >64-bits val" + level, new PropertiesMetadataView.PropertyOrSubView(new BigInteger("-9223372036854775809").toString()));
-        root.put("pos float val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(Float.MAX_VALUE)));
-        root.put("neg float val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(-Float.MAX_VALUE)));
-        root.put("pos double val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(Double.MAX_VALUE)));
-        root.put("neg double val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(-Double.MAX_VALUE)));
-        root.put("true val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(true)));
-        root.put("false val" + level, new PropertiesMetadataView.PropertyOrSubView(String.valueOf(false)));
-        root.put("valid subview val" + level, new PropertiesMetadataView.PropertyOrSubView(subView));
+        root.put("string val" + level, new PropertiesMetadataView.Value("hello world"));
+        root.put("pos int val" + level, new PropertiesMetadataView.Value(String.valueOf(Integer.MAX_VALUE)));
+        root.put("neg int val" + level, new PropertiesMetadataView.Value(String.valueOf(Integer.MIN_VALUE)));
+        root.put("pos long val" + level, new PropertiesMetadataView.Value(String.valueOf(Long.MAX_VALUE)));
+        root.put("neg long val" + level, new PropertiesMetadataView.Value(String.valueOf(Long.MIN_VALUE)));
+        root.put("pos int >64-bits val" + level, new PropertiesMetadataView.Value(new BigInteger("9223372036854775808").toString()));
+        root.put("neg int >64-bits val" + level, new PropertiesMetadataView.Value(new BigInteger("-9223372036854775809").toString()));
+        root.put("pos float val" + level, new PropertiesMetadataView.Value(String.valueOf(Float.MAX_VALUE)));
+        root.put("neg float val" + level, new PropertiesMetadataView.Value(String.valueOf(-Float.MAX_VALUE)));
+        root.put("pos double val" + level, new PropertiesMetadataView.Value(String.valueOf(Double.MAX_VALUE)));
+        root.put("neg double val" + level, new PropertiesMetadataView.Value(String.valueOf(-Double.MAX_VALUE)));
+        root.put("true val" + level, new PropertiesMetadataView.Value(String.valueOf(true)));
+        root.put("false val" + level, new PropertiesMetadataView.Value(String.valueOf(false)));
+        root.put("valid subview val" + level, new PropertiesMetadataView.Value(subView));
 
         return root.build();
     }

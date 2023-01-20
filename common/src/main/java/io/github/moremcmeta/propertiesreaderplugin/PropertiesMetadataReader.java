@@ -64,12 +64,12 @@ public class PropertiesMetadataReader implements MetadataReader {
         Function<ResourceLocation, MetadataView> textureToView = (overlayLocation) -> new PropertiesMetadataView(
                 ImmutableMap.of(
                         "overlay",
-                        new PropertiesMetadataView.PropertyOrSubView(
+                        new PropertiesMetadataView.Value(
                                 ImmutableMap.of(
                                         "texture",
-                                        new PropertiesMetadataView.PropertyOrSubView(overlayLocation.toString()),
+                                        new PropertiesMetadataView.Value(overlayLocation.toString()),
                                         "emissive",
-                                        new PropertiesMetadataView.PropertyOrSubView("true")
+                                        new PropertiesMetadataView.Value("true")
                                 )
                         )
                 )
@@ -94,7 +94,7 @@ public class PropertiesMetadataReader implements MetadataReader {
     private static Map<ResourceLocation, MetadataView> readAnimationFile(Properties props)
             throws InvalidMetadataException {
         ResourceLocation from = convertToLocation(expandPath(require(props, "from")));
-        ImmutableMap.Builder<String, PropertiesMetadataView.PropertyOrSubView> builder = new ImmutableMap.Builder<>();
+        ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder = new ImmutableMap.Builder<>();
 
         putIfValPresent(builder, props, "to", "to", PropertiesMetadataReader::expandPath);
         putIfValPresent(builder, props, "x", "x", Function.identity());
@@ -104,7 +104,7 @@ public class PropertiesMetadataReader implements MetadataReader {
         putIfValPresent(builder, props, "interpolate", "interpolate", Function.identity());
         putIfValPresent(builder, props, "skip", "skip", Function.identity());
         putIfValPresent(builder, props, "duration", "frameTime", Function.identity());
-        buildFrameList(props).ifPresent((propertyOrSubView) -> builder.put("frames", propertyOrSubView));
+        buildFrameList(props).ifPresent((value) -> builder.put("frames", value));
 
         return ImmutableMap.of(
                 from,
@@ -117,7 +117,7 @@ public class PropertiesMetadataReader implements MetadataReader {
      * @param props     all properties read
      * @return list of animation frames or {@link Optional#empty()} if there are no individual frame settings
      */
-    private static Optional<PropertiesMetadataView.PropertyOrSubView> buildFrameList(Properties props) {
+    private static Optional<PropertiesMetadataView.Value> buildFrameList(Properties props) {
         Optional<Integer> maxDefinedTick = props.stringPropertyNames().stream()
                 .filter((propName) -> propName.matches("(duration|tile)\\.\\d+"))
                 .map((propName) -> Integer.parseInt(propName.substring(propName.indexOf('.') + 1)))
@@ -126,19 +126,19 @@ public class PropertiesMetadataReader implements MetadataReader {
             return Optional.empty();
         }
 
-        ImmutableMap.Builder<String, PropertiesMetadataView.PropertyOrSubView> builder = new ImmutableMap.Builder<>();
+        ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder = new ImmutableMap.Builder<>();
 
         for (int index = 0; index <= maxDefinedTick.get(); index++) {
             String durationKey = "duration." + index;
             String tileKey = "tile." + index;
 
-            ImmutableMap.Builder<String, PropertiesMetadataView.PropertyOrSubView> frame =
+            ImmutableMap.Builder<String, PropertiesMetadataView.Value> frame =
                     new ImmutableMap.Builder<>();
 
             if (props.containsKey(durationKey)) {
                 frame.put(
                         "time",
-                        new PropertiesMetadataView.PropertyOrSubView(
+                        new PropertiesMetadataView.Value(
                                 (String) props.get(durationKey)
                         )
                 );
@@ -146,15 +146,15 @@ public class PropertiesMetadataReader implements MetadataReader {
 
             frame.put(
                     "index",
-                    new PropertiesMetadataView.PropertyOrSubView(
+                    new PropertiesMetadataView.Value(
                             (String) props.getOrDefault(tileKey, String.valueOf(index))
                     )
             );
 
-            builder.put(String.valueOf(index), new PropertiesMetadataView.PropertyOrSubView(frame.build()));
+            builder.put(String.valueOf(index), new PropertiesMetadataView.Value(frame.build()));
         }
 
-        return Optional.of(new PropertiesMetadataView.PropertyOrSubView(builder.build()));
+        return Optional.of(new PropertiesMetadataView.Value(builder.build()));
     }
 
     /**
@@ -180,13 +180,13 @@ public class PropertiesMetadataReader implements MetadataReader {
      * @param destinationKey    key of the transformed property that will be added to the builder
      * @param transformer       function to transform the value (only called if the value is non-null)
      */
-    private static void putIfValPresent(ImmutableMap.Builder<String, PropertiesMetadataView.PropertyOrSubView> builder,
+    private static void putIfValPresent(ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder,
                                         Properties props, String sourceKey, String destinationKey,
                                         Function<String, String> transformer) {
         String value = props.getProperty(sourceKey);
         if (value != null) {
             value = transformer.apply(value);
-            builder.put(destinationKey, new PropertiesMetadataView.PropertyOrSubView(value));
+            builder.put(destinationKey, new PropertiesMetadataView.Value(value));
         }
     }
 
