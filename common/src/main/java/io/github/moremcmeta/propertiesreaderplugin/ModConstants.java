@@ -9,6 +9,6 @@ import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataReader;
 public class ModConstants {
     public static final String MOD_ID = "moremcmeta_properties_reader_plugin";
     public static final String DISPLAY_NAME = "MoreMcmeta Properties Metadata Reader";
-    public static final MetadataReader READER = null;
+    public static final MetadataReader READER = new PropertiesMetadataReader();
     public static final String EXTENSION = ".properties";
 }
