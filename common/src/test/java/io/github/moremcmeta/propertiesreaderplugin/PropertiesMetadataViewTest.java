@@ -1539,6 +1539,13 @@ public class PropertiesMetadataViewTest {
     }
 
     @Test
+    public void subViewIndex_NegativeIndex_NegativeKeyIndexException() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        expectedException.expect(MetadataView.NegativeKeyIndexException.class);
+        assertFalse(view.subView(-1).isPresent());
+    }
+
+    @Test
     public void subViewIndex_StringVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.subView(0).isPresent());
@@ -1625,6 +1632,12 @@ public class PropertiesMetadataViewTest {
                         "pos double val1", "neg double val1", "true val1", "false val1", "valid subview val1"),
                 new HashSet<>(collectKeys(view.subView(13).orElseThrow().keys()))
         );
+    }
+
+    @Test
+    public void subViewIndex_IndexTooLarge_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.subView(14).isPresent());
     }
 
     private ImmutableMap<String, PropertiesMetadataView.Value> makeDemoMap() {
