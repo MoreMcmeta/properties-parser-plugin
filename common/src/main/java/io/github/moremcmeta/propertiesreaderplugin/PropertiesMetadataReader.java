@@ -220,7 +220,7 @@ public class PropertiesMetadataReader implements MetadataReader {
         }
 
         // Process home
-        path = path.replaceAll("~", OPTIFINE_HOME);
+        path = path.replace("~", OPTIFINE_HOME);
 
         // Process ./, ../, and no start symbol
         try {
