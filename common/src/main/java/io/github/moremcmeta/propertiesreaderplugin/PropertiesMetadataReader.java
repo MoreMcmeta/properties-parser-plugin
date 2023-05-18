@@ -9,6 +9,9 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -24,6 +27,10 @@ import java.util.stream.Collectors;
 public class PropertiesMetadataReader implements MetadataReader {
     private static final ResourceLocation EMISSIVE_CONFIG = new ResourceLocation("optifine/emissive.properties");
     private static final String ANIMATION_PATH_START = "optifine/anim/";
+    private static final String NAMESPACE_SEP = ":";
+    private static final String PATH_SEP = "/";
+    private static final String ASSETS_DIR = "/assets";
+    private static final String OPTIFINE_HOME = ASSETS_DIR + "/minecraft/optifine/";
 
     @Override
     public Map<ResourceLocation, MetadataView> read(ResourceLocation metadataLocation, InputStream metadataStream,
@@ -43,7 +50,7 @@ public class PropertiesMetadataReader implements MetadataReader {
         }
 
         if (metadataLocation.getPath().startsWith(ANIMATION_PATH_START)) {
-            return readAnimationFile(props);
+            return readAnimationFile(props, metadataLocation);
         }
 
         throw new InvalidMetadataException(String.format("Support is not yet implemented for the OptiFine properties " +
@@ -90,14 +97,19 @@ public class PropertiesMetadataReader implements MetadataReader {
     /**
      * Reads metadata from an animation file.
      * @param props                 all read properties
+     * @param metadataLocation      location of the animation file
      * @return all metadata from an animation files
      */
-    private static Map<ResourceLocation, MetadataView> readAnimationFile(Properties props)
+    private static Map<ResourceLocation, MetadataView> readAnimationFile(Properties props,
+                                                                         ResourceLocation metadataLocation)
             throws InvalidMetadataException {
-        ResourceLocation from = convertToLocation(expandPath(require(props, "from")));
+        ResourceLocation from = convertToLocation(require(props, "from"), metadataLocation);
         ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder = new ImmutableMap.Builder<>();
 
-        putIfValPresent(builder, props, "to", "base", PropertiesMetadataReader::expandPath);
+        putIfValPresent(builder, props, "to", "base", (path) -> PropertiesMetadataReader.expandPath(
+                path,
+                metadataLocation
+        ));
         putIfValPresent(builder, props, "x", "x", Function.identity());
         putIfValPresent(builder, props, "y", "y", Function.identity());
         putIfValPresent(builder, props, "w", "width", Function.identity());
@@ -193,11 +205,48 @@ public class PropertiesMetadataReader implements MetadataReader {
 
     /**
      * Expands special characters in OptiFine paths to make a complete path.
-     * @param path      path to expand
+     * @param path              path to expand
+     * @param metadataLocation  location of the metadata containing the path
      * @return path with special characters expanded
      */
-    private static String expandPath(String path) {
-        return path.replaceAll("~", "optifine");
+    private static String expandPath(String path, ResourceLocation metadataLocation) {
+
+        // Process namespace
+        if (path.contains(NAMESPACE_SEP)) {
+            int separatorIndex = path.indexOf(NAMESPACE_SEP);
+            String namespace = path.substring(0, separatorIndex);
+            path = path.substring(separatorIndex + 1);
+            path = ASSETS_DIR + PATH_SEP + namespace + PATH_SEP + path;
+        }
+
+        // Process home
+        path = path.replaceAll("~", OPTIFINE_HOME);
+
+        // Process ./, ../, and no start symbol
+        try {
+            Path userPath = Paths.get(path);
+
+            if (path.startsWith("./") || path.startsWith("../")) {
+                Path metadataPath = Paths.get(ASSETS_DIR, metadataLocation.getNamespace(), metadataLocation.getPath());
+                path = metadataPath.resolve(userPath).normalize().toString();
+            } else {
+                Path homePath = Paths.get(OPTIFINE_HOME);
+                path = homePath.resolve(userPath).normalize().toString();
+            }
+        } catch (InvalidPathException ignored) {
+            // An exception will be raised in the caller when the path is converted to a ResourceLocation
+        }
+
+        /* At this point, the path has been normalized to /assets/namespace/...
+           Now, we need to add the namespace so that it is properly converted to a ResourceLocation. */
+        path = path.substring(ASSETS_DIR.length());
+        if (path.contains(PATH_SEP)) {
+            int separatorIndex = path.indexOf(PATH_SEP);
+            String namespace = path.substring(0, separatorIndex);
+            path = namespace + NAMESPACE_SEP + path.substring(separatorIndex + 1);
+        }
+
+        return path;
     }
 
     /**
@@ -220,13 +269,15 @@ public class PropertiesMetadataReader implements MetadataReader {
     /**
      * Tries to convert a string to a {@link ResourceLocation}. If the conversion fails, throws an
      * {@link InvalidMetadataException}.
-     * @param path      path to convert
+     * @param path              path to convert
+     * @param metadataLocation  location of the metadata containing the path
      * @return path as a {@link ResourceLocation}
      * @throws InvalidMetadataException if the path cannot be converted to a valid {@link ResourceLocation}
      */
-    private static ResourceLocation convertToLocation(String path) throws InvalidMetadataException {
+    private static ResourceLocation convertToLocation(String path, ResourceLocation metadataLocation)
+            throws InvalidMetadataException {
         try {
-            return new ResourceLocation(path);
+            return new ResourceLocation(expandPath(path, metadataLocation));
         } catch (ResourceLocationException err) {
             throw new InvalidMetadataException(err.getMessage());
         }
