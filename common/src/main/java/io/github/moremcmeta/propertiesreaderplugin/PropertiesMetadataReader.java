@@ -204,6 +204,19 @@ public class PropertiesMetadataReader implements MetadataReader {
     }
 
     /**
+     * Resolves the filePath with respect to the basePath.
+     * @param basePath      base path of the file
+     * @param filePath      path within the base path of the file
+     * @return the filePath resolved and normalized with respect to the basePath
+     */
+    private static String resolve(Path basePath, Path filePath) {
+
+        // Need to handle backslashes on Windows
+        return basePath.resolve(filePath).normalize().toString().replace("\\", "/");
+
+    }
+
+    /**
      * Expands special characters in OptiFine paths to make a complete path.
      * @param path              path to expand
      * @param metadataLocation  location of the metadata containing the path
@@ -228,10 +241,10 @@ public class PropertiesMetadataReader implements MetadataReader {
 
             if (path.startsWith("./") || path.startsWith("../")) {
                 Path metadataPath = Paths.get(ASSETS_DIR, metadataLocation.getNamespace(), metadataLocation.getPath());
-                path = metadataPath.resolve(userPath).normalize().toString();
+                path = resolve(metadataPath, userPath);
             } else {
                 Path homePath = Paths.get(OPTIFINE_HOME);
-                path = homePath.resolve(userPath).normalize().toString();
+                path = resolve(homePath, userPath);
             }
         } catch (InvalidPathException ignored) {
 
