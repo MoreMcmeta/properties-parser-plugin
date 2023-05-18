@@ -121,7 +121,12 @@ public class PropertiesMetadataReader implements MetadataReader {
 
         return ImmutableMap.of(
                 from,
-                new PropertiesMetadataView(builder.build())
+                new PropertiesMetadataView(
+                        ImmutableMap.of(
+                                "animation",
+                                new PropertiesMetadataView.Value(builder.build())
+                        )
+                )
         );
     }
 
