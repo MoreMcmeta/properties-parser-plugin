@@ -240,7 +240,8 @@ public class PropertiesMetadataReader implements MetadataReader {
             Path userPath = Paths.get(path);
 
             if (path.startsWith("./") || path.startsWith("../")) {
-                Path metadataPath = Paths.get(ASSETS_DIR, metadataLocation.getNamespace(), metadataLocation.getPath());
+                Path metadataPath = Paths.get(ASSETS_DIR, metadataLocation.getNamespace(), metadataLocation.getPath())
+                        .getParent();
                 path = resolve(metadataPath, userPath);
             } else {
                 Path homePath = Paths.get(OPTIFINE_HOME);
