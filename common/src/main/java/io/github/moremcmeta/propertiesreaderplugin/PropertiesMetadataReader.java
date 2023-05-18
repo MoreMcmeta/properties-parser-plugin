@@ -242,12 +242,10 @@ public class PropertiesMetadataReader implements MetadataReader {
 
         /* At this point, the path has been normalized to /assets/namespace/...
            Now, we need to add the namespace so that it is properly converted to a ResourceLocation. */
-        path = path.substring(ASSETS_DIR.length());
-        if (path.contains(PATH_SEP)) {
-            int separatorIndex = path.indexOf(PATH_SEP);
-            String namespace = path.substring(0, separatorIndex);
-            path = namespace + NAMESPACE_SEP + path.substring(separatorIndex + 1);
-        }
+        path = path.substring(ASSETS_DIR.length() + 1);
+        int separatorIndex = path.indexOf(PATH_SEP);
+        String namespace = path.substring(0, separatorIndex);
+        path = namespace + NAMESPACE_SEP + path.substring(separatorIndex + 1);
 
         return path;
     }
