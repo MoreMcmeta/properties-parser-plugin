@@ -234,7 +234,10 @@ public class PropertiesMetadataReader implements MetadataReader {
                 path = homePath.resolve(userPath).normalize().toString();
             }
         } catch (InvalidPathException ignored) {
+
             // An exception will be raised in the caller when the path is converted to a ResourceLocation
+            return path;
+
         }
 
         /* At this point, the path has been normalized to /assets/namespace/...
