@@ -30,7 +30,8 @@ public class PropertiesMetadataReader implements MetadataReader {
     private static final String NAMESPACE_SEP = ":";
     private static final String PATH_SEP = "/";
     private static final String ASSETS_DIR = "/assets";
-    private static final String OPTIFINE_HOME = ASSETS_DIR + "/minecraft/optifine";
+    private static final String MC_HOME = ASSETS_DIR + "/minecraft";
+    private static final String OPTIFINE_HOME = MC_HOME + "/optifine";
 
     @Override
     public Map<ResourceLocation, MetadataView> read(ResourceLocation metadataLocation, InputStream metadataStream,
@@ -249,7 +250,7 @@ public class PropertiesMetadataReader implements MetadataReader {
                         .getParent();
                 path = resolve(metadataPath, userPath);
             } else {
-                Path homePath = Paths.get(OPTIFINE_HOME);
+                Path homePath = Paths.get(MC_HOME);
                 path = resolve(homePath, userPath);
             }
         } catch (InvalidPathException ignored) {
