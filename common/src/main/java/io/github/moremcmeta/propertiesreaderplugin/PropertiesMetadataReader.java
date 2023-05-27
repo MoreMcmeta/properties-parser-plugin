@@ -91,7 +91,7 @@ public class PropertiesMetadataReader implements MetadataReader {
                                 overlayLocation.getNamespace(),
                                 overlayLocation.getPath().replace(emissiveSuffix, ".png")
                         ),
-                        (overlayLocation) -> textureToView.apply(toSpriteName(overlayLocation))
+                        textureToView
                 ));
     }
 
@@ -174,21 +174,6 @@ public class PropertiesMetadataReader implements MetadataReader {
         }
 
         return Optional.of(new PropertiesMetadataView.Value(builder.build()));
-    }
-
-    /**
-     * Converts a standard texture location (with textures/ prefix and .png suffix) to a sprite name.
-     * @param textureLocation      the texture location to convert
-     * @return the sprite name corresponding to the texture location
-     */
-    private static ResourceLocation toSpriteName(ResourceLocation textureLocation) {
-        final int SUFFIX_LENGTH = ".png".length();
-        String originalPath = textureLocation.getPath();
-        String spriteName = originalPath.replace("textures/", "");
-        if (spriteName.length() >= SUFFIX_LENGTH) {
-            spriteName = spriteName.substring(0, spriteName.length() - SUFFIX_LENGTH);
-        }
-        return new ResourceLocation(textureLocation.getNamespace(), spriteName);
     }
 
     /**
