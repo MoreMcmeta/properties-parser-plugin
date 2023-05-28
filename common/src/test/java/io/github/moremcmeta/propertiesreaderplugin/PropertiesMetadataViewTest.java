@@ -6,6 +6,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,6 +23,8 @@ import static org.junit.Assert.assertTrue;
  * @author soir20
  */
 public class PropertiesMetadataViewTest {
+    private static final InputStream MOCK_STREAM = new ByteArrayInputStream("stream".getBytes());
+
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
@@ -199,6 +203,12 @@ public class PropertiesMetadataViewTest {
     }
 
     @Test
+    public void hasKeyString_StreamVal_True() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertTrue(view.hasKey("stream val0"));
+    }
+
+    @Test
     public void hasKeyIndex_NegativeIndex_NegativeKeyIndexException() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         expectedException.expect(MetadataView.NegativeKeyIndexException.class);
@@ -287,6 +297,18 @@ public class PropertiesMetadataViewTest {
     public void hasKeyIndex_ValidSubViewVal_True() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertTrue(view.hasKey(13));
+    }
+
+    @Test
+    public void hasKeyIndex_StreamVal_True() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertTrue(view.hasKey(14));
+    }
+
+    @Test
+    public void hasKeyIndex_IndexTooLarge_False() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.hasKey(15));
     }
 
     @Test
@@ -392,6 +414,12 @@ public class PropertiesMetadataViewTest {
     }
 
     @Test
+    public void stringValueString_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.stringValue("stream val0").isPresent());
+    }
+
+    @Test
     public void stringValueIndex_StringVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertEquals("hello world", view.stringValue(0).orElseThrow());
@@ -473,6 +501,18 @@ public class PropertiesMetadataViewTest {
     public void stringValueIndex_ValidSubViewVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.stringValue(13).isPresent());
+    }
+
+    @Test
+    public void stringValueIndex_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.stringValue(14).isPresent());
+    }
+
+    @Test
+    public void stringValueIndex_IndexTooLarge_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.stringValue(15).isPresent());
     }
 
     @Test
@@ -578,6 +618,12 @@ public class PropertiesMetadataViewTest {
     }
 
     @Test
+    public void integerValueString_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue("stream val0").isPresent());
+    }
+
+    @Test
     public void integerValueIndex_StringVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.integerValue(0).isPresent());
@@ -659,6 +705,18 @@ public class PropertiesMetadataViewTest {
     public void integerValueIndex_ValidSubViewVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.integerValue(13).isPresent());
+    }
+
+    @Test
+    public void integerValueIndex_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue(14).isPresent());
+    }
+
+    @Test
+    public void integerValueIndex_IndexTooLarge_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue(15).isPresent());
     }
 
     @Test
@@ -764,6 +822,12 @@ public class PropertiesMetadataViewTest {
     }
 
     @Test
+    public void longValueString_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.longValue("stream val0").isPresent());
+    }
+
+    @Test
     public void longValueIndex_StringVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.longValue(0).isPresent());
@@ -845,6 +909,18 @@ public class PropertiesMetadataViewTest {
     public void longValueIndex_ValidSubViewVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.longValue(13).isPresent());
+    }
+
+    @Test
+    public void longValueIndex_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.longValue(14).isPresent());
+    }
+
+    @Test
+    public void longValueIndex_IndexTooLarge_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.longValue(15).isPresent());
     }
 
     @Test
@@ -950,6 +1026,12 @@ public class PropertiesMetadataViewTest {
     }
 
     @Test
+    public void floatValueString_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.floatValue("stream val0").isPresent());
+    }
+
+    @Test
     public void floatValueIndex_StringVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.floatValue(0).isPresent());
@@ -1031,6 +1113,18 @@ public class PropertiesMetadataViewTest {
     public void floatValueIndex_ValidSubViewVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.floatValue(13).isPresent());
+    }
+
+    @Test
+    public void floatValueIndex_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.floatValue(14).isPresent());
+    }
+
+    @Test
+    public void floatValueIndex_IndexTooLarge_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.floatValue(15).isPresent());
     }
 
     @Test
@@ -1136,6 +1230,12 @@ public class PropertiesMetadataViewTest {
     }
 
     @Test
+    public void doubleValueString_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.doubleValue("stream val0").isPresent());
+    }
+
+    @Test
     public void doubleValueIndex_StringVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.doubleValue(0).isPresent());
@@ -1217,6 +1317,18 @@ public class PropertiesMetadataViewTest {
     public void doubleValueIndex_ValidSubViewVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.doubleValue(13).isPresent());
+    }
+
+    @Test
+    public void doubleValueIndex_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.doubleValue(14).isPresent());
+    }
+
+    @Test
+    public void doubleValueIndex_IndexTooLarge_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.doubleValue(15).isPresent());
     }
 
     @Test
@@ -1319,6 +1431,12 @@ public class PropertiesMetadataViewTest {
     public void booleanValueString_ValidSubViewVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.booleanValue("valid subview val0").isPresent());
+    }
+
+    @Test
+    public void booleanValueString_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.booleanValue("stream val0").isPresent());
     }
 
     @Test
@@ -1432,6 +1550,18 @@ public class PropertiesMetadataViewTest {
     }
 
     @Test
+    public void booleanValueIndex_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.booleanValue(14).isPresent());
+    }
+
+    @Test
+    public void booleanValueIndex_IndexTooLarge_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.booleanValue(15).isPresent());
+    }
+
+    @Test
     public void subViewString_KeyNotPresent_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.subView("not present").isPresent());
@@ -1533,9 +1663,16 @@ public class PropertiesMetadataViewTest {
         assertEquals(
                 Set.of("string val1", "pos int val1", "neg int val1", "pos long val1", "neg long val1",
                         "pos int >64-bits val1", "neg int >64-bits val1", "pos float val1", "neg float val1",
-                        "pos double val1", "neg double val1", "true val1", "false val1", "valid subview val1"),
+                        "pos double val1", "neg double val1", "true val1", "false val1", "valid subview val1",
+                        "stream val1"),
                 new HashSet<>(collectKeys(view.subView("valid subview val0").orElseThrow().keys()))
         );
+    }
+
+    @Test
+    public void subViewString_StreamVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.subView("stream val0").isPresent());
     }
 
     @Test
@@ -1629,15 +1766,226 @@ public class PropertiesMetadataViewTest {
         assertEquals(
                 Set.of("string val1", "pos int val1", "neg int val1", "pos long val1", "neg long val1",
                         "pos int >64-bits val1", "neg int >64-bits val1", "pos float val1", "neg float val1",
-                        "pos double val1", "neg double val1", "true val1", "false val1", "valid subview val1"),
+                        "pos double val1", "neg double val1", "true val1", "false val1", "valid subview val1",
+                        "stream val1"),
                 new HashSet<>(collectKeys(view.subView(13).orElseThrow().keys()))
         );
     }
 
     @Test
-    public void subViewIndex_IndexTooLarge_Empty() {
+    public void subViewIndex_StreamVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.subView(14).isPresent());
+    }
+
+    @Test
+    public void subViewIndex_IndexTooLarge_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.subView(15).isPresent());
+    }
+
+    @Test
+    public void streamValueString_KeyNotPresent_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue("not present").isPresent());
+    }
+
+    @Test
+    public void streamValueString_KeyAtNextLevel_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue("valid subview val1").isPresent());
+    }
+
+    @Test
+    public void streamValueString_NullVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue("null val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_StringVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue("string val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_PosIntVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertEquals(Integer.MAX_VALUE, (int) view.integerValue("pos int val0").orElseThrow());
+    }
+
+    @Test
+    public void streamValueString_NegIntVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertEquals(Integer.MIN_VALUE, (int) view.integerValue("neg int val0").orElseThrow());
+    }
+
+    @Test
+    public void streamValueString_PosLongVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue("pos long val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_NegLongVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue("neg long val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_PosBeyond64BitsVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.integerValue("pos int >64-bits val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_NegBeyond64BitsVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue("neg int >64-bits val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_PosFloatVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue("pos float val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_NegFloatVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue("neg float val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_PosDoubleVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue("pos double val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_NegDoubleVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue("neg double val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_TrueVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue("true val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_FalseVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue("false val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_ValidSubViewVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue("valid subview val0").isPresent());
+    }
+
+    @Test
+    public void streamValueString_StreamVal_ValueFound() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertEquals(MOCK_STREAM, view.byteStreamValue("stream val0").orElseThrow());
+    }
+
+    @Test
+    public void streamValueIndex_StringVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(0).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_PosIntVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(1).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_NegIntVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(2).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_PosLongVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(3).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_NegLongVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(4).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_PosBeyond64BitsVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(5).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_NegBeyond64BitsVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(6).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_PosFloatVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(7).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_NegFloatVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(8).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_PosDoubleVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(9).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_NegDoubleVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(10).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_TrueVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(11).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_FalseVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(12).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_ValidSubViewVal_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(13).isPresent());
+    }
+
+    @Test
+    public void streamValueIndex_StreamVal_ValueFound() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertEquals(MOCK_STREAM, view.byteStreamValue(14).orElseThrow());
+    }
+
+    @Test
+    public void streamValueIndex_IndexTooLarge_Empty() {
+        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
+        assertFalse(view.byteStreamValue(15).isPresent());
     }
 
     private ImmutableMap<String, PropertiesMetadataView.Value> makeDemoMap() {
@@ -1667,6 +2015,7 @@ public class PropertiesMetadataViewTest {
         root.put("true val" + level, new PropertiesMetadataView.Value(String.valueOf(true)));
         root.put("false val" + level, new PropertiesMetadataView.Value(String.valueOf(false)));
         root.put("valid subview val" + level, new PropertiesMetadataView.Value(subView));
+        root.put("stream val" + level, new PropertiesMetadataView.Value(MOCK_STREAM));
 
         return root.build();
     }

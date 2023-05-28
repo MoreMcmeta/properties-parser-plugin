@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.InvalidMetadataException;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataReader;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.ResourceRepository;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
 
@@ -35,7 +36,7 @@ public class PropertiesMetadataReader implements MetadataReader {
 
     @Override
     public Map<ResourceLocation, MetadataView> read(ResourceLocation metadataLocation, InputStream metadataStream,
-                                                    Function<Predicate<String>, Set<ResourceLocation>> resourceSearcher)
+                                                    ResourceRepository resourceRepository)
             throws InvalidMetadataException {
         Properties props = new Properties();
         try {
@@ -47,7 +48,7 @@ public class PropertiesMetadataReader implements MetadataReader {
         }
 
         if (metadataLocation.equals(EMISSIVE_CONFIG)) {
-            return readEmissiveFile(props, resourceSearcher);
+            return readEmissiveFile(props, resourceRepository::list);
         }
 
         if (metadataLocation.getPath().startsWith(ANIMATION_PATH_START)) {

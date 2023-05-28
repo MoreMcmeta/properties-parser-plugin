@@ -3,6 +3,7 @@ package io.github.moremcmeta.propertiesreaderplugin;
 import com.google.common.collect.ImmutableMap;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,30 +54,30 @@ public class PropertiesMetadataView implements MetadataView {
 
     @Override
     public Optional<String> stringValue(String key) {
-        if (isNotProperty(key)) {
+        if (isNotString(key)) {
             return Optional.empty();
         }
 
-        return Optional.of(PROPERTIES.get(key).PROPERTY);
+        return Optional.of(PROPERTIES.get(key).STRING);
     }
 
     @Override
     public Optional<String> stringValue(int index) {
-        if (isNotProperty(index)) {
+        if (isNotString(index)) {
             return Optional.empty();
         }
 
-        return Optional.of(VALUES_BY_INDEX.get(index).PROPERTY);
+        return Optional.of(VALUES_BY_INDEX.get(index).STRING);
     }
 
     @Override
     public Optional<Integer> integerValue(String key) {
-        if (isNotProperty(key)) {
+        if (isNotString(key)) {
             return Optional.empty();
         }
 
         try {
-            return Optional.of(Integer.parseInt(PROPERTIES.get(key).PROPERTY));
+            return Optional.of(Integer.parseInt(PROPERTIES.get(key).STRING));
         } catch (NumberFormatException err) {
             return Optional.empty();
         }
@@ -84,12 +85,12 @@ public class PropertiesMetadataView implements MetadataView {
 
     @Override
     public Optional<Integer> integerValue(int index) {
-        if (isNotProperty(index)) {
+        if (isNotString(index)) {
             return Optional.empty();
         }
 
         try {
-            return Optional.of(Integer.parseInt(VALUES_BY_INDEX.get(index).PROPERTY));
+            return Optional.of(Integer.parseInt(VALUES_BY_INDEX.get(index).STRING));
         } catch (NumberFormatException err) {
             return Optional.empty();
         }
@@ -97,12 +98,12 @@ public class PropertiesMetadataView implements MetadataView {
 
     @Override
     public Optional<Long> longValue(String key) {
-        if (isNotProperty(key)) {
+        if (isNotString(key)) {
             return Optional.empty();
         }
 
         try {
-            return Optional.of(Long.parseLong(PROPERTIES.get(key).PROPERTY));
+            return Optional.of(Long.parseLong(PROPERTIES.get(key).STRING));
         } catch (NumberFormatException err) {
             return Optional.empty();
         }
@@ -110,12 +111,12 @@ public class PropertiesMetadataView implements MetadataView {
 
     @Override
     public Optional<Long> longValue(int index) {
-        if (isNotProperty(index)) {
+        if (isNotString(index)) {
             return Optional.empty();
         }
 
         try {
-            return Optional.of(Long.parseLong(VALUES_BY_INDEX.get(index).PROPERTY));
+            return Optional.of(Long.parseLong(VALUES_BY_INDEX.get(index).STRING));
         } catch (NumberFormatException err) {
             return Optional.empty();
         }
@@ -123,12 +124,12 @@ public class PropertiesMetadataView implements MetadataView {
 
     @Override
     public Optional<Float> floatValue(String key) {
-        if (isNotProperty(key)) {
+        if (isNotString(key)) {
             return Optional.empty();
         }
 
         try {
-            float value = Float.parseFloat(PROPERTIES.get(key).PROPERTY);
+            float value = Float.parseFloat(PROPERTIES.get(key).STRING);
             if (Float.isFinite(value)) {
                 return Optional.of(value);
             }
@@ -139,12 +140,12 @@ public class PropertiesMetadataView implements MetadataView {
 
     @Override
     public Optional<Float> floatValue(int index) {
-        if (isNotProperty(index)) {
+        if (isNotString(index)) {
             return Optional.empty();
         }
 
         try {
-            float value = Float.parseFloat(VALUES_BY_INDEX.get(index).PROPERTY);
+            float value = Float.parseFloat(VALUES_BY_INDEX.get(index).STRING);
             if (Float.isFinite(value)) {
                 return Optional.of(value);
             }
@@ -155,12 +156,12 @@ public class PropertiesMetadataView implements MetadataView {
 
     @Override
     public Optional<Double> doubleValue(String key) {
-        if (isNotProperty(key)) {
+        if (isNotString(key)) {
             return Optional.empty();
         }
 
         try {
-            double value = Double.parseDouble(PROPERTIES.get(key).PROPERTY);
+            double value = Double.parseDouble(PROPERTIES.get(key).STRING);
             if (Double.isFinite(value)) {
                 return Optional.of(value);
             }
@@ -171,12 +172,12 @@ public class PropertiesMetadataView implements MetadataView {
 
     @Override
     public Optional<Double> doubleValue(int index) {
-        if (isNotProperty(index)) {
+        if (isNotString(index)) {
             return Optional.empty();
         }
 
         try {
-            double value = Double.parseDouble(VALUES_BY_INDEX.get(index).PROPERTY);
+            double value = Double.parseDouble(VALUES_BY_INDEX.get(index).STRING);
             if (Double.isFinite(value)) {
                 return Optional.of(value);
             }
@@ -187,20 +188,38 @@ public class PropertiesMetadataView implements MetadataView {
 
     @Override
     public Optional<Boolean> booleanValue(String key) {
-        if (isNotProperty(key)) {
+        if (isNotString(key)) {
             return Optional.empty();
         }
 
-        return Optional.of("true".equalsIgnoreCase(PROPERTIES.get(key).PROPERTY));
+        return Optional.of("true".equalsIgnoreCase(PROPERTIES.get(key).STRING));
     }
 
     @Override
     public Optional<Boolean> booleanValue(int index) {
-        if (isNotProperty(index)) {
+        if (isNotString(index)) {
             return Optional.empty();
         }
 
-        return Optional.of("true".equalsIgnoreCase(VALUES_BY_INDEX.get(index).PROPERTY));
+        return Optional.of("true".equalsIgnoreCase(VALUES_BY_INDEX.get(index).STRING));
+    }
+
+    @Override
+    public Optional<InputStream> byteStreamValue(String key) {
+        if (!hasKey(key) || PROPERTIES.get(key).TYPE != ValueType.BYTE_STREAM) {
+            return Optional.empty();
+        }
+
+        return Optional.of(PROPERTIES.get(key).BYTE_STREAM);
+    }
+
+    @Override
+    public Optional<InputStream> byteStreamValue(int index) {
+        if (!hasKey(index) || VALUES_BY_INDEX.get(index).TYPE != ValueType.BYTE_STREAM) {
+            return Optional.empty();
+        }
+
+        return Optional.of(VALUES_BY_INDEX.get(index).BYTE_STREAM);
     }
 
     @Override
@@ -210,7 +229,7 @@ public class PropertiesMetadataView implements MetadataView {
         }
 
         Value value = PROPERTIES.get(key);
-        if (value.IS_PROPERTY) {
+        if (value.TYPE != ValueType.SUB_VIEW) {
             return Optional.empty();
         }
 
@@ -224,7 +243,7 @@ public class PropertiesMetadataView implements MetadataView {
         }
 
         Value value = VALUES_BY_INDEX.get(index);
-        if (value.IS_PROPERTY) {
+        if (value.TYPE != ValueType.SUB_VIEW) {
             return Optional.empty();
         }
 
@@ -232,21 +251,21 @@ public class PropertiesMetadataView implements MetadataView {
     }
 
     /**
-     * Checks if a value is either not present or not a property (string).
+     * Checks if a value is either not present or not a string.
      * @param key       key associated with the value
-     * @return true if the value is not present or not a property, false otherwise
+     * @return true if the value is not present or not a string, false otherwise
      */
-    private boolean isNotProperty(String key) {
-        return !hasKey(key) || !PROPERTIES.get(key).IS_PROPERTY;
+    private boolean isNotString(String key) {
+        return !hasKey(key) || PROPERTIES.get(key).TYPE != ValueType.STRING;
     }
 
     /**
-     * Checks if a value is either not present or not a property (string).
+     * Checks if a value is either not present or not a string.
      * @param index       index of the value
-     * @return true if the value is not present or not a property, false otherwise
+     * @return true if the value is not present or not a string, false otherwise
      */
-    private boolean isNotProperty(int index) {
-        return !hasKey(index) || !VALUES_BY_INDEX.get(index).IS_PROPERTY;
+    private boolean isNotString(int index) {
+        return !hasKey(index) || VALUES_BY_INDEX.get(index).TYPE != ValueType.STRING;
     }
 
     /**
@@ -255,18 +274,31 @@ public class PropertiesMetadataView implements MetadataView {
      * @author soir20
      */
     public static final class Value {
-        private final boolean IS_PROPERTY;
-        private final String PROPERTY;
+        private final ValueType TYPE;
+        private final String STRING;
+        private final InputStream BYTE_STREAM;
         private final ImmutableMap<String, Value> SUB_VIEW;
 
         /**
-         * Creates a new wrapper with a string property.
-         * @param property      property to store
+         * Creates a new wrapper with a string.
+         * @param value      string value to store
          */
-        public Value(String property) {
-            PROPERTY = requireNonNull(property, "Property cannot be null");
+        public Value(String value) {
+            STRING = requireNonNull(value, "Property cannot be null");
+            BYTE_STREAM = null;
             SUB_VIEW = null;
-            IS_PROPERTY = true;
+            TYPE = ValueType.STRING;
+        }
+
+        /**
+         * Creates a new wrapper with a sub view.
+         * @param byteStream    byte stream to store
+         */
+        public Value(InputStream byteStream) {
+            STRING = null;
+            BYTE_STREAM = requireNonNull(byteStream, "Byte stream cannot be null");
+            SUB_VIEW = null;
+            TYPE = ValueType.BYTE_STREAM;
         }
 
         /**
@@ -274,11 +306,18 @@ public class PropertiesMetadataView implements MetadataView {
          * @param subView       sub view to store
          */
         public Value(ImmutableMap<String, Value> subView) {
-            PROPERTY = null;
+            STRING = null;
+            BYTE_STREAM = null;
             SUB_VIEW = requireNonNull(subView, "Sub view cannot be null");
-            IS_PROPERTY = false;
+            TYPE = ValueType.SUB_VIEW;
         }
 
+    }
+
+    private enum ValueType {
+        STRING,
+        BYTE_STREAM,
+        SUB_VIEW
     }
 
 }
