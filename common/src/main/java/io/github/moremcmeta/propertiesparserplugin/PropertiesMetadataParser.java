@@ -36,7 +36,7 @@ public class PropertiesMetadataParser implements MetadataParser {
 
     @Override
     public Map<ResourceLocation, MetadataView> parse(ResourceLocation metadataLocation, InputStream metadataStream,
-                                                    ResourceRepository resourceRepository)
+                                                    ResourceRepository repository)
             throws InvalidMetadataException {
         Properties props = new Properties();
         try {
@@ -48,11 +48,11 @@ public class PropertiesMetadataParser implements MetadataParser {
         }
 
         if (metadataLocation.equals(EMISSIVE_CONFIG)) {
-            return readEmissiveFile(props, resourceRepository::list);
+            return readEmissiveFile(props, repository::list);
         }
 
         if (metadataLocation.getPath().startsWith(ANIMATION_PATH_START)) {
-            return readAnimationFile(props, metadataLocation);
+            return readAnimationFile(props, metadataLocation, repository);
         }
 
         throw new InvalidMetadataException(String.format("Support is not yet implemented for the OptiFine properties " +
@@ -103,15 +103,17 @@ public class PropertiesMetadataParser implements MetadataParser {
      * @return all metadata from an animation files
      */
     private static Map<ResourceLocation, MetadataView> readAnimationFile(Properties props,
-                                                                         ResourceLocation metadataLocation)
+                                                                         ResourceLocation metadataLocation,
+                                                                         ResourceRepository repository)
             throws InvalidMetadataException {
         ResourceLocation from = convertToLocation(require(props, "from"), metadataLocation);
+        InputStream fromStream = findTextureStream(from, repository);
+
+        ResourceLocation to = convertToLocation(require(props, "to"), metadataLocation);
+
         ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder = new ImmutableMap.Builder<>();
 
-        putIfValPresent(builder, props, "to", "base", (path) -> PropertiesMetadataParser.expandPath(
-                path,
-                metadataLocation
-        ));
+        builder.put("textureData", new PropertiesMetadataView.Value(fromStream));
         putIfValPresent(builder, props, "x", "x", Function.identity());
         putIfValPresent(builder, props, "y", "y", Function.identity());
         putIfValPresent(builder, props, "w", "width", Function.identity());
@@ -122,7 +124,7 @@ public class PropertiesMetadataParser implements MetadataParser {
         buildFrameList(props).ifPresent((value) -> builder.put("frames", value));
 
         return ImmutableMap.of(
-                from,
+                to,
                 new PropertiesMetadataView(
                         ImmutableMap.of(
                                 "animation",
@@ -130,6 +132,28 @@ public class PropertiesMetadataParser implements MetadataParser {
                         )
                 )
         );
+    }
+
+    /**
+     * Finds an {@link InputStream} containing image data for a given texture.
+     * @param location      location to search for
+     * @param repository    resource repository to search in
+     * @return input stream for the given texture
+     * @throws InvalidMetadataException if the texture is not found
+     */
+    private static InputStream findTextureStream(ResourceLocation location, ResourceRepository repository)
+            throws InvalidMetadataException {
+        Optional<ResourceRepository.Pack> packWithFromTexture = repository.highestPackWith(location);
+        if (packWithFromTexture.isEmpty()) {
+            throw new InvalidMetadataException("Unable to find texture " + location);
+        }
+
+        Optional<InputStream> textureOptional = packWithFromTexture.get().resource(location);
+        if (textureOptional.isEmpty()) {
+            throw new InvalidMetadataException("Unable to find texture that should exist " + location);
+        }
+
+        return textureOptional.get();
     }
 
     /**
