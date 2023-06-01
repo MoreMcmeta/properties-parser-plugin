@@ -98,7 +98,9 @@ public class PropertiesMetadataParser implements MetadataParser {
         );
 
         MetadataView combinedAnimationView = new PropertiesMetadataView(ImmutableMap.of(
-                "animations", new PropertiesMetadataView.Value(combinedAnimations)
+                ANIMATION_SECTION, new PropertiesMetadataView.Value(ImmutableMap.of(
+                        "animations", new PropertiesMetadataView.Value(combinedAnimations)
+                ))
         ));
 
         // Include other views to avoid losing non-animation sections
