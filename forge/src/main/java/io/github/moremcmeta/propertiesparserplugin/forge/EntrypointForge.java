@@ -1,6 +1,6 @@
-package io.github.moremcmeta.propertiesreaderplugin.forge;
+package io.github.moremcmeta.propertiesparserplugin.forge;
 
-import io.github.moremcmeta.propertiesreaderplugin.ModConstants;
+import io.github.moremcmeta.propertiesparserplugin.ModConstants;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;

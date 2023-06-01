@@ -1,15 +1,15 @@
-package io.github.moremcmeta.propertiesreaderplugin.fabric;
+package io.github.moremcmeta.propertiesparserplugin.fabric;
 
 import io.github.moremcmeta.moremcmeta.api.client.MoreMcmetaMetadataParserPlugin;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
-import io.github.moremcmeta.propertiesreaderplugin.ModConstants;
+import io.github.moremcmeta.propertiesparserplugin.ModConstants;
 
 /**
- * Implementation of the properties reader plugin on Fabric.
+ * Implementation of the properties parser plugin on Fabric.
  * @author soir20
  */
 @SuppressWarnings("unused")
-public class PropertiesReaderPluginFabric implements MoreMcmetaMetadataParserPlugin {
+public class PropertiesParserPluginFabric implements MoreMcmetaMetadataParserPlugin {
     @Override
     public String extension() {
         return ModConstants.EXTENSION;

@@ -59,8 +59,8 @@ jobs:
         uses: soir20/upload-release-asset@37aa3a51885376058749a2862ac37308eff79123
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ matrix.loader }}/build/libs/properties-reader-plugin-${{ env.MC_VERSION }}-${{ env.MOD_VERSION }}-${{ matrix.loader }}.jar
-          asset_name: properties-reader-plugin-${{ env.MC_VERSION }}-${{ env.MOD_VERSION }}-${{ matrix.loader }}.jar
+          asset_path: ./${{ matrix.loader }}/build/libs/properties-parser-plugin-${{ env.MC_VERSION }}-${{ env.MOD_VERSION }}-${{ matrix.loader }}.jar
+          asset_name: properties-parser-plugin-${{ env.MC_VERSION }}-${{ env.MOD_VERSION }}-${{ matrix.loader }}.jar
           asset_content_type: application/java-archive
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

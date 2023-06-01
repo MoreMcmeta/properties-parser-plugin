@@ -1,17 +1,17 @@
-package io.github.moremcmeta.propertiesreaderplugin.forge;
+package io.github.moremcmeta.propertiesparserplugin.forge;
 
 import io.github.moremcmeta.moremcmeta.api.client.MoreMcmetaMetadataParserPlugin;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
 import io.github.moremcmeta.moremcmeta.forge.api.client.MoreMcmetaClientPlugin;
-import io.github.moremcmeta.propertiesreaderplugin.ModConstants;
+import io.github.moremcmeta.propertiesparserplugin.ModConstants;
 
 /**
- * Implementation of the properties reader plugin on Forge.
+ * Implementation of the properties parser plugin on Forge.
  * @author soir20
  */
 @SuppressWarnings("unused")
 @MoreMcmetaClientPlugin
-public class PropertiesReaderPluginForge implements MoreMcmetaMetadataParserPlugin {
+public class PropertiesParserPluginForge implements MoreMcmetaMetadataParserPlugin {
     @Override
     public String extension() {
         return ModConstants.EXTENSION;

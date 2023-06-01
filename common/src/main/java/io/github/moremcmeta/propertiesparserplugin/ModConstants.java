@@ -1,4 +1,4 @@
-package io.github.moremcmeta.propertiesreaderplugin;
+package io.github.moremcmeta.propertiesparserplugin;
 
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
 
@@ -7,7 +7,7 @@ import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
  * @author soir20
  */
 public class ModConstants {
-    public static final String MOD_ID = "moremcmeta_properties_reader_plugin";
+    public static final String MOD_ID = "moremcmeta_properties_parser_plugin";
     public static final MetadataParser PARSER = new PropertiesMetadataParser();
     public static final String EXTENSION = "properties";
 }

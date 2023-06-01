@@ -1,3 +1,3 @@
-# MoreMcmeta Properties Reader Plugin
+# MoreMcmeta Properties Parser Plugin
 
-Default plugin for MoreMcmeta that reads OptiFine (`.properties`) metadata files.
+Default plugin for MoreMcmeta that parses OptiFine (`.properties`) metadata files.

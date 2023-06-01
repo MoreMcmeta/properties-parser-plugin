@@ -1,4 +1,4 @@
-package io.github.moremcmeta.propertiesreaderplugin;
+package io.github.moremcmeta.propertiesparserplugin;
 
 import com.google.common.collect.ImmutableMap;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.NegativeKeyIndexException;

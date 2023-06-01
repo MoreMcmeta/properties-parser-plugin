@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "id": "moremcmeta_properties_reader_plugin",
+  "id": "moremcmeta_properties_parser_plugin",
   "version": "${modVersion}",
-  "name": "MoreMcmeta Properties Reader Plugin",
+  "name": "MoreMcmeta Properties Parser Plugin",
   "description": "Default plugin for MoreMcmeta that reads OptiFine (.properties) metadata files.",
   "authors": [
     "soir20"
   ],
   "contact": {
     "homepage": "https://github.com/MoreMcmeta",
-    "sources": "https://github.com/MoreMcmeta/properties-reader-plugin"
+    "sources": "https://github.com/MoreMcmeta/properties-parser-plugin"
   },
   "license": "LGPL-3.0",
   "environment": "*",
   "entrypoints": {
     "moremcmeta-client": [
-      "io.github.moremcmeta.propertiesreaderplugin.fabric.PropertiesReaderPluginFabric"
+      "io.github.moremcmeta.propertiesparserplugin.fabric.PropertiesParserPluginFabric"
     ]
   },
   "depends": {

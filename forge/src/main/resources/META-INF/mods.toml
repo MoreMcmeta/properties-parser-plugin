@@ -3,30 +3,30 @@ loaderVersion = "[${loaderVersion},)"
 license = "LGPL-3.0"
 
 [[mods]]
-modId = "moremcmeta_properties_reader_plugin"
+modId = "moremcmeta_properties_parser_plugin"
 version = "${modVersion}"
-displayName = "MoreMcmeta Properties Reader Plugin"
+displayName = "MoreMcmeta Properties Parser Plugin"
 authors = "soir20"
 description = '''
 Default plugin for MoreMcmeta that reads OptiFine (.properties) metadata files.
 '''
 #logoFile = ""
 
-[[dependencies.moremcmeta_properties_reader_plugin]]
+[[dependencies.moremcmeta_properties_parser_plugin]]
 modId = "moremcmeta"
 mandatory = true
 versionRange = "[${minMoreMcmetaVersion},)"
 ordering = "NONE"
 side = "CLIENT"
 
-[[dependencies.moremcmeta_properties_reader_plugin]]
+[[dependencies.moremcmeta_properties_parser_plugin]]
 modId = "forge"
 mandatory = true
 versionRange = "[${loaderVersion},)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.moremcmeta_properties_reader_plugin]]
+[[dependencies.moremcmeta_properties_parser_plugin]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[${minecraftVersion},)"

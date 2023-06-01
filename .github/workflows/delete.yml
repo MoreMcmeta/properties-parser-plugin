@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/delete-package-versions@c5e64443ea1242014b4011a563c5bccc90867ac8
         with:
-          package-name: io.github.moremcmeta.properties-reader-plugin-${{ matrix.loader }}
+          package-name: io.github.moremcmeta.properties-parser-plugin-${{ matrix.loader }}
           min-versions-to-keep: 0
           ignore-versions: ^[\d.]+-(?!${{ github.event.ref }}-SNAPSHOT).*$
           token: ${{ secrets.GITHUB_TOKEN }}
