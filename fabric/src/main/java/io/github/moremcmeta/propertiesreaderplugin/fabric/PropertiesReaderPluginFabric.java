@@ -1,7 +1,7 @@
 package io.github.moremcmeta.propertiesreaderplugin.fabric;
 
-import io.github.moremcmeta.moremcmeta.api.client.MoreMcmetaMetadataReaderPlugin;
-import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataReader;
+import io.github.moremcmeta.moremcmeta.api.client.MoreMcmetaMetadataParserPlugin;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
 import io.github.moremcmeta.propertiesreaderplugin.ModConstants;
 
 /**
@@ -9,19 +9,19 @@ import io.github.moremcmeta.propertiesreaderplugin.ModConstants;
  * @author soir20
  */
 @SuppressWarnings("unused")
-public class PropertiesReaderPluginFabric implements MoreMcmetaMetadataReaderPlugin {
+public class PropertiesReaderPluginFabric implements MoreMcmetaMetadataParserPlugin {
     @Override
     public String extension() {
         return ModConstants.EXTENSION;
     }
 
     @Override
-    public MetadataReader metadataReader() {
-        return ModConstants.READER;
+    public MetadataParser metadataParser() {
+        return ModConstants.PARSER;
     }
 
     @Override
-    public String displayName() {
-        return ModConstants.DISPLAY_NAME;
+    public String id() {
+        return ModConstants.MOD_ID;
     }
 }

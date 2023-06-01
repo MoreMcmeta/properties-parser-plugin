@@ -2,6 +2,7 @@ package io.github.moremcmeta.propertiesreaderplugin;
 
 import com.google.common.collect.ImmutableMap;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.NegativeKeyIndexException;
 
 import java.io.InputStream;
 import java.util.ArrayList;

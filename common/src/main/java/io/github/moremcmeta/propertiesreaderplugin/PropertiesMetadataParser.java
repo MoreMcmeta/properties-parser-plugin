@@ -2,7 +2,7 @@ package io.github.moremcmeta.propertiesreaderplugin;
 
 import com.google.common.collect.ImmutableMap;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.InvalidMetadataException;
-import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataReader;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.ResourceRepository;
 import net.minecraft.ResourceLocationException;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * Reads metadata from .properties files.
  * @author soir20
  */
-public class PropertiesMetadataReader implements MetadataReader {
+public class PropertiesMetadataParser implements MetadataParser {
     private static final ResourceLocation EMISSIVE_CONFIG = new ResourceLocation("optifine/emissive.properties");
     private static final String ANIMATION_PATH_START = "optifine/anim/";
     private static final String NAMESPACE_SEP = ":";
@@ -35,7 +35,7 @@ public class PropertiesMetadataReader implements MetadataReader {
     private static final String OPTIFINE_HOME = MC_HOME + "/optifine";
 
     @Override
-    public Map<ResourceLocation, MetadataView> read(ResourceLocation metadataLocation, InputStream metadataStream,
+    public Map<ResourceLocation, MetadataView> parse(ResourceLocation metadataLocation, InputStream metadataStream,
                                                     ResourceRepository resourceRepository)
             throws InvalidMetadataException {
         Properties props = new Properties();
@@ -108,7 +108,7 @@ public class PropertiesMetadataReader implements MetadataReader {
         ResourceLocation from = convertToLocation(require(props, "from"), metadataLocation);
         ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder = new ImmutableMap.Builder<>();
 
-        putIfValPresent(builder, props, "to", "base", (path) -> PropertiesMetadataReader.expandPath(
+        putIfValPresent(builder, props, "to", "base", (path) -> PropertiesMetadataParser.expandPath(
                 path,
                 metadataLocation
         ));

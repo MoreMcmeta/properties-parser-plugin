@@ -1,7 +1,7 @@
 package io.github.moremcmeta.propertiesreaderplugin;
 
 import com.google.common.collect.ImmutableMap;
-import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.NegativeKeyIndexException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -211,7 +211,7 @@ public class PropertiesMetadataViewTest {
     @Test
     public void hasKeyIndex_NegativeIndex_NegativeKeyIndexException() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        expectedException.expect(MetadataView.NegativeKeyIndexException.class);
+        expectedException.expect(NegativeKeyIndexException.class);
         view.hasKey(-1);
     }
 
@@ -1678,7 +1678,7 @@ public class PropertiesMetadataViewTest {
     @Test
     public void subViewIndex_NegativeIndex_NegativeKeyIndexException() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        expectedException.expect(MetadataView.NegativeKeyIndexException.class);
+        expectedException.expect(NegativeKeyIndexException.class);
         assertFalse(view.subView(-1).isPresent());
     }
 

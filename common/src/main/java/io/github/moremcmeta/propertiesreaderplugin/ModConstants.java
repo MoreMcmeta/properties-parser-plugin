@@ -1,6 +1,6 @@
 package io.github.moremcmeta.propertiesreaderplugin;
 
-import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataReader;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
 
 /**
  * Constants for both Fabric and Forge implementations of the plugin.
@@ -8,7 +8,6 @@ import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataReader;
  */
 public class ModConstants {
     public static final String MOD_ID = "moremcmeta_properties_reader_plugin";
-    public static final String DISPLAY_NAME = "MoreMcmeta Properties Metadata Reader";
-    public static final MetadataReader READER = new PropertiesMetadataReader();
+    public static final MetadataParser PARSER = new PropertiesMetadataParser();
     public static final String EXTENSION = "properties";
 }
