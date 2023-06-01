@@ -252,6 +252,24 @@ public class PropertiesMetadataView implements MetadataView {
     }
 
     /**
+     * Gets the map underlying the sub view, if present.
+     * @param key       key of the sub view to retrieve
+     * @return map underlying the sub view wrapped in a {@link Value}, if present
+     */
+    public Optional<Value> rawSubView(String key) {
+        if (!hasKey(key)) {
+            return Optional.empty();
+        }
+
+        Value value = PROPERTIES.get(key);
+        if (value.TYPE != ValueType.SUB_VIEW) {
+            return Optional.empty();
+        }
+
+        return Optional.of(value);
+    }
+
+    /**
      * Checks if a value is either not present or not a string.
      * @param key       key associated with the value
      * @return true if the value is not present or not a string, false otherwise

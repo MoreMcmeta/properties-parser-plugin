@@ -1,6 +1,8 @@
 package io.github.moremcmeta.propertiesparserplugin;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.datafixers.util.Pair;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.CombinedMetadataView;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.InvalidMetadataException;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
@@ -13,6 +15,9 @@ import java.io.InputStream;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -20,6 +25,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Reads metadata from .properties files.
@@ -33,6 +39,8 @@ public class PropertiesMetadataParser implements MetadataParser {
     private static final String ASSETS_DIR = "/assets";
     private static final String MC_HOME = ASSETS_DIR + "/minecraft";
     private static final String OPTIFINE_HOME = MC_HOME + "/optifine";
+    private static final String ANIMATION_SECTION = "animation";
+    private static final String OVERLAY_SECTION = "overlay";
 
     @Override
     public Map<ResourceLocation, MetadataView> parse(ResourceLocation metadataLocation, InputStream metadataStream,
@@ -60,6 +68,50 @@ public class PropertiesMetadataParser implements MetadataParser {
                 metadataLocation));
     }
 
+    @Override
+    public MetadataView combine(ResourceLocation textureLocation, Map<ResourceLocation, MetadataView> metadataByLocation)
+            throws InvalidMetadataException {
+        Set<String> sections = new HashSet<>();
+        for (MetadataView view : metadataByLocation.values()) {
+            for (String section : view.keys()) {
+                if (!section.equals(ANIMATION_SECTION) && !sections.add(section)) {
+                    throw new InvalidMetadataException("Conflicting key " + section + " provided by two metadata files");
+                }
+            }
+        }
+
+        // Combine all animations together into one view
+        List<PropertiesMetadataView.Value> animations = metadataByLocation.values().stream()
+                .filter((view) -> view instanceof PropertiesMetadataView)
+                .map((view) -> (PropertiesMetadataView) view)
+                .filter((view) -> view.rawSubView(ANIMATION_SECTION).isPresent())
+                .map((view) -> view.rawSubView(ANIMATION_SECTION).orElseThrow())
+                .toList();
+
+        ImmutableMap<String, PropertiesMetadataView.Value> combinedAnimations = ImmutableMap.copyOf(
+                IntStream.range(0, animations.size())
+                        .mapToObj((index) -> Pair.of(String.valueOf(index), animations.get(index)))
+                        .collect(Collectors.toMap(
+                                Pair::getFirst,
+                                Pair::getSecond
+                        ))
+        );
+
+        MetadataView combinedAnimationView = new PropertiesMetadataView(ImmutableMap.of(
+                "animations", new PropertiesMetadataView.Value(combinedAnimations)
+        ));
+
+        // Include other views to avoid losing non-animation sections
+        List<MetadataView> sortedViews = metadataByLocation.keySet().stream()
+                .sorted()
+                .map(metadataByLocation::get)
+                .toList();
+        List<MetadataView> allViews = new ArrayList<>(sortedViews);
+        allViews.add(0, combinedAnimationView);
+
+        return new CombinedMetadataView(allViews);
+    }
+
     /**
      * Reads metadata from an emissive textures file.
      * @param props                 all read properties
@@ -73,7 +125,7 @@ public class PropertiesMetadataParser implements MetadataParser {
 
         Function<ResourceLocation, MetadataView> textureToView = (overlayLocation) -> new PropertiesMetadataView(
                 ImmutableMap.of(
-                        "overlay",
+                        OVERLAY_SECTION,
                         new PropertiesMetadataView.Value(
                                 ImmutableMap.of(
                                         "texture",
