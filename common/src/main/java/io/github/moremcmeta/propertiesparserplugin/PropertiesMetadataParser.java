@@ -40,6 +40,7 @@ public class PropertiesMetadataParser implements MetadataParser {
     private static final String MC_HOME = ASSETS_DIR + "/minecraft";
     private static final String OPTIFINE_HOME = MC_HOME + "/optifine";
     private static final String ANIMATION_SECTION = "animation";
+    private static final String PARTS_KEY = "parts";
     private static final String OVERLAY_SECTION = "overlay";
 
     @Override
@@ -82,10 +83,15 @@ public class PropertiesMetadataParser implements MetadataParser {
 
         // Combine all animations together into one view
         List<PropertiesMetadataView.Value> animations = metadataByLocation.values().stream()
+                .filter((view) -> view.subView(ANIMATION_SECTION).isPresent())
+                .map((view) -> view.subView(ANIMATION_SECTION).orElseThrow())
+                .filter((view) -> view.subView(PARTS_KEY).isPresent())
+                .map((view) -> view.subView(PARTS_KEY).orElseThrow())
                 .filter((view) -> view instanceof PropertiesMetadataView)
                 .map((view) -> (PropertiesMetadataView) view)
-                .filter((view) -> view.rawSubView(ANIMATION_SECTION).isPresent())
-                .map((view) -> view.rawSubView(ANIMATION_SECTION).orElseThrow())
+                .flatMap((view) -> IntStream.range(0, view.size()).mapToObj(view::rawSubView))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .toList();
 
         ImmutableMap<String, PropertiesMetadataView.Value> combinedAnimations = ImmutableMap.copyOf(
@@ -99,7 +105,7 @@ public class PropertiesMetadataParser implements MetadataParser {
 
         MetadataView combinedAnimationView = new PropertiesMetadataView(ImmutableMap.of(
                 ANIMATION_SECTION, new PropertiesMetadataView.Value(ImmutableMap.of(
-                        "animations", new PropertiesMetadataView.Value(combinedAnimations)
+                        PARTS_KEY, new PropertiesMetadataView.Value(combinedAnimations)
                 ))
         ));
 
@@ -182,7 +188,13 @@ public class PropertiesMetadataParser implements MetadataParser {
                 new PropertiesMetadataView(
                         ImmutableMap.of(
                                 "animation",
-                                new PropertiesMetadataView.Value(builder.build())
+                                new PropertiesMetadataView.Value(ImmutableMap.of(
+                                        "parts",
+                                        new PropertiesMetadataView.Value(ImmutableMap.of(
+                                                "0",
+                                                new PropertiesMetadataView.Value(builder.build())
+                                        ))
+                                ))
                         )
                 )
         );

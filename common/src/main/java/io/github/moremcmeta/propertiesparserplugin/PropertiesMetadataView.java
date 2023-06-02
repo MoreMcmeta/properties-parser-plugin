@@ -253,15 +253,15 @@ public class PropertiesMetadataView implements MetadataView {
 
     /**
      * Gets the map underlying the sub view, if present.
-     * @param key       key of the sub view to retrieve
+     * @param index       the index of the key whose sub-view value to retrieve
      * @return map underlying the sub view wrapped in a {@link Value}, if present
      */
-    public Optional<Value> rawSubView(String key) {
-        if (!hasKey(key)) {
+    public Optional<Value> rawSubView(int index) {
+        if (!hasKey(index)) {
             return Optional.empty();
         }
 
-        Value value = PROPERTIES.get(key);
+        Value value = VALUES_BY_INDEX.get(index);
         if (value.TYPE != ValueType.SUB_VIEW) {
             return Optional.empty();
         }
