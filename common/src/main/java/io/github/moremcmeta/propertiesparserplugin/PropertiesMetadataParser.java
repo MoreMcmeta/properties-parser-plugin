@@ -173,7 +173,7 @@ public class PropertiesMetadataParser implements MetadataParser {
 
         ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder = new ImmutableMap.Builder<>();
 
-        builder.put("textureData", new PropertiesMetadataView.Value(fromStream));
+        builder.put("texture", new PropertiesMetadataView.Value(fromStream));
         putIfValPresent(builder, props, "x", "x", Function.identity());
         putIfValPresent(builder, props, "y", "y", Function.identity());
         putIfValPresent(builder, props, "w", "width", Function.identity());
