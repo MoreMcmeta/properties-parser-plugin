@@ -70,7 +70,8 @@ public class PropertiesMetadataParser implements MetadataParser {
     }
 
     @Override
-    public MetadataView combine(ResourceLocation textureLocation, Map<ResourceLocation, MetadataView> metadataByLocation)
+    public MetadataView combine(ResourceLocation textureLocation,
+                                Map<? extends ResourceLocation, ? extends MetadataView> metadataByLocation)
             throws InvalidMetadataException {
         Set<String> sections = new HashSet<>();
         for (MetadataView view : metadataByLocation.values()) {
@@ -110,7 +111,7 @@ public class PropertiesMetadataParser implements MetadataParser {
         ));
 
         // Include other views to avoid losing non-animation sections
-        List<MetadataView> sortedViews = metadataByLocation.keySet().stream()
+        List<? extends MetadataView> sortedViews = metadataByLocation.keySet().stream()
                 .sorted()
                 .map(metadataByLocation::get)
                 .toList();
@@ -127,7 +128,7 @@ public class PropertiesMetadataParser implements MetadataParser {
      * @return all metadata from an emissive textures files
      */
     private static Map<ResourceLocation, MetadataView> readEmissiveFile(
-            Properties props, Function<Predicate<String>, Set<ResourceLocation>> resourceSearcher
+            Properties props, Function<Predicate<String>, Set<? extends ResourceLocation>> resourceSearcher
     ) {
         String emissiveSuffix = props.getOrDefault("suffix.emissive", "_e") + ".png";
 
