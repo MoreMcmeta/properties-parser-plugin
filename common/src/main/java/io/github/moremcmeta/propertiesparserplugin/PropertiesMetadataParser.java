@@ -126,8 +126,8 @@ public class PropertiesMetadataParser implements MetadataParser {
      */
     private static Map<ResourceLocation, MetadataView> readEmissiveFile(
             Properties props, Function<Predicate<String>, Set<? extends ResourceLocation>> resourceSearcher
-    ) {
-        String emissiveSuffix = props.getOrDefault("suffix.emissive", "_e") + ".png";
+    ) throws InvalidMetadataException {
+        String emissiveSuffix = require(props, "suffix.emissive") + ".png";
 
         Function<ResourceLocation, MetadataView> textureToView = (overlayLocation) -> new PropertiesMetadataView(
                 ImmutableMap.of(

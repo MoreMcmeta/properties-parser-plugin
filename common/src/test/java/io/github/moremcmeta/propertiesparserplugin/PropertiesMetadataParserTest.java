@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -26,7 +27,261 @@ public class PropertiesMetadataParserTest {
     public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
-    public void parse_UsesAllProperties_AllParsed() throws InvalidMetadataException {
+    public void parse_BadPropertiesFile_InvalidMetadataException() throws InvalidMetadataException, IOException {
+        InputStream badStream = InputStream.nullInputStream();
+        badStream.close();
+
+        expectedException.expect(InvalidMetadataException.class);
+        PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                badStream,
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/optifine/eyes.png"),
+                                new ResourceLocation("textures/optifine/eyes_e.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/test.png"),
+                                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                                new ResourceLocation("optifine/emissive.properties"),
+                                new ResourceLocation("textures/entity/witch.png"),
+                                new ResourceLocation("textures/entity/witch_f.png"),
+                                new ResourceLocation("textures/entity/bee_e.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("moremcmeta", "textures/dummy.png"),
+                                new ResourceLocation("textures/test_e.png")
+                        )
+                ))
+        );
+    }
+
+    @Test
+    public void parse_UnknownFile_InvalidMetadataException() throws InvalidMetadataException {
+        expectedException.expect(InvalidMetadataException.class);
+        PARSER.parse(
+                new ResourceLocation("optifine/other.properties"),
+                makePropertiesStream(
+                        "bad.config=_e"
+                ),
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("optifine/other.properties")
+                        )
+                ))
+        );
+    }
+
+    @Test
+    public void parse_EmptyEmissiveConfig_InvalidMetadataException() throws InvalidMetadataException {
+        expectedException.expect(InvalidMetadataException.class);
+        PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                makePropertiesStream(
+                        ""
+                ),
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/optifine/eyes.png"),
+                                new ResourceLocation("textures/optifine/eyes_e.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/test.png"),
+                                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                                new ResourceLocation("optifine/emissive.properties"),
+                                new ResourceLocation("textures/entity/witch.png"),
+                                new ResourceLocation("textures/entity/witch_f.png"),
+                                new ResourceLocation("textures/entity/bee_e.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("moremcmeta", "textures/dummy.png"),
+                                new ResourceLocation("textures/test_e.png")
+                        )
+                ))
+        );
+    }
+
+    @Test
+    public void parse_BadEmissiveConfig_InvalidMetadataException() throws InvalidMetadataException {
+        expectedException.expect(InvalidMetadataException.class);
+        PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                makePropertiesStream(
+                        "bad.config=_e"
+                ),
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/optifine/eyes.png"),
+                                new ResourceLocation("textures/optifine/eyes_e.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/test.png"),
+                                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                                new ResourceLocation("optifine/emissive.properties"),
+                                new ResourceLocation("textures/entity/witch.png"),
+                                new ResourceLocation("textures/entity/witch_f.png"),
+                                new ResourceLocation("textures/entity/bee_e.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("moremcmeta", "textures/dummy.png"),
+                                new ResourceLocation("textures/test_e.png")
+                        )
+                ))
+        );
+    }
+
+    @Test
+    public void parse_NoEmissiveTextures_NoneParsed() throws InvalidMetadataException {
+        Map<ResourceLocation, MetadataView> views = PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                makePropertiesStream(
+                        "suffix.emissive=_e"
+                ),
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/optifine/eyes.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/test.png"),
+                                new ResourceLocation("optifine/emissive.properties"),
+                                new ResourceLocation("textures/entity/witch.png"),
+                                new ResourceLocation("textures/entity/witch_f.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("moremcmeta", "textures/dummy.png")
+                        )
+                ))
+        );
+
+        assertEquals(0, views.size());
+    }
+
+    @Test
+    public void parse_HasEmissiveTextures_AllParsed() throws InvalidMetadataException {
+        Map<ResourceLocation, MetadataView> views = PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                makePropertiesStream(
+                        "suffix.emissive=_e"
+                ),
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/optifine/eyes.png"),
+                                new ResourceLocation("textures/optifine/eyes_e.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/test.png"),
+                                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                                new ResourceLocation("optifine/emissive.properties"),
+                                new ResourceLocation("textures/entity/witch.png"),
+                                new ResourceLocation("textures/entity/witch_f.png"),
+                                new ResourceLocation("textures/entity/bee_e.png"),
+                                new ResourceLocation("textures/entity/dolphin_e")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("moremcmeta", "textures/dummy.png"),
+                                new ResourceLocation("textures/test_e.png")
+                        )
+                ))
+        );
+
+        assertEquals(4, views.size());
+
+        MetadataView view1 = views.get(new ResourceLocation("textures/optifine/eyes.png"))
+                        .subView("overlay").orElseThrow();
+        MetadataView view2 = views.get(new ResourceLocation("moremcmeta", "textures/dummy.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view3 = views.get(new ResourceLocation("textures/test.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view4 = views.get(new ResourceLocation("textures/entity/bee.png"))
+                .subView("overlay").orElseThrow();
+
+        assertTrue(view1.booleanValue("emissive").orElseThrow());
+        assertTrue(view2.booleanValue("emissive").orElseThrow());
+        assertTrue(view3.booleanValue("emissive").orElseThrow());
+        assertTrue(view4.booleanValue("emissive").orElseThrow());
+
+        assertEquals(
+                new ResourceLocation("textures/optifine/eyes_e.png"),
+                new ResourceLocation(view1.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                new ResourceLocation(view2.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("textures/test_e.png"),
+                new ResourceLocation(view3.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("textures/entity/bee_e.png"),
+                new ResourceLocation(view4.stringValue("texture").orElseThrow())
+        );
+    }
+
+    @Test
+    public void parse_HasEmissiveTexturesAndWhitespace_AllParsed() throws InvalidMetadataException {
+        Map<ResourceLocation, MetadataView> views = PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                makePropertiesStream(
+                        "suffix.emissive = \t_e"
+                ),
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/optifine/eyes.png"),
+                                new ResourceLocation("textures/optifine/eyes_e.png")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/test.png"),
+                                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                                new ResourceLocation("optifine/emissive.properties"),
+                                new ResourceLocation("textures/entity/witch.png"),
+                                new ResourceLocation("textures/entity/witch_f.png"),
+                                new ResourceLocation("textures/entity/bee_e.png"),
+                                new ResourceLocation("textures/entity/dolphin_e")
+                        ),
+                        ImmutableSet.of(
+                                new ResourceLocation("moremcmeta", "textures/dummy.png"),
+                                new ResourceLocation("textures/test_e.png")
+                        )
+                ))
+        );
+
+        assertEquals(4, views.size());
+
+        MetadataView view1 = views.get(new ResourceLocation("textures/optifine/eyes.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view2 = views.get(new ResourceLocation("moremcmeta", "textures/dummy.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view3 = views.get(new ResourceLocation("textures/test.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view4 = views.get(new ResourceLocation("textures/entity/bee.png"))
+                .subView("overlay").orElseThrow();
+
+        assertTrue(view1.booleanValue("emissive").orElseThrow());
+        assertTrue(view2.booleanValue("emissive").orElseThrow());
+        assertTrue(view3.booleanValue("emissive").orElseThrow());
+        assertTrue(view4.booleanValue("emissive").orElseThrow());
+
+        assertEquals(
+                new ResourceLocation("textures/optifine/eyes_e.png"),
+                new ResourceLocation(view1.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                new ResourceLocation(view2.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("textures/test_e.png"),
+                new ResourceLocation(view3.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("textures/entity/bee_e.png"),
+                new ResourceLocation(view4.stringValue("texture").orElseThrow())
+        );
+    }
+
+    @Test
+    public void parse_UsesAllAnimationProperties_AllParsed() throws InvalidMetadataException {
         Map<ResourceLocation, MetadataView> views = PARSER.parse(
                 new ResourceLocation("optifine/anim/creepereyes.properties"),
                 makePropertiesStream(
@@ -716,6 +971,24 @@ public class PropertiesMetadataParserTest {
         assertEquals(
                 ImmutableSet.of(new ResourceLocation("../textures/entity/creeper.png")),
                 views.keySet()
+        );
+    }
+
+    @Test
+    public void parse_EmptyAnimationConfig_InvalidMetadataException() throws InvalidMetadataException {
+        expectedException.expect(InvalidMetadataException.class);
+        PARSER.parse(
+                new ResourceLocation("optifine/anim/creepereyes.properties"),
+                makePropertiesStream(
+                        ""
+                ),
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/entity/creeper.png"),
+                                new ResourceLocation("optifine/anim/eyes.png"),
+                                new ResourceLocation("optifine/anim/creepereyes.properties")
+                        )
+                ))
         );
     }
 
