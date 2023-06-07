@@ -12,10 +12,8 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +33,6 @@ public class PropertiesMetadataParser implements MetadataParser {
     private static final ResourceLocation EMISSIVE_CONFIG = new ResourceLocation("optifine/emissive.properties");
     private static final String ANIMATION_PATH_START = "optifine/anim/";
     private static final String NAMESPACE_SEP = ":";
-    private static final String PATH_SEP = "/";
-    private static final String ASSETS_DIR = "/assets";
-    private static final String MC_HOME = ASSETS_DIR + "/minecraft";
-    private static final String OPTIFINE_HOME = MC_HOME + "/optifine";
     private static final String ANIMATION_SECTION = "animation";
     private static final String PARTS_KEY = "parts";
     private static final String OVERLAY_SECTION = "overlay";
@@ -56,12 +50,15 @@ public class PropertiesMetadataParser implements MetadataParser {
             );
         }
 
+        Map<String, PropertiesMetadataView.Value> metadata = new HashMap<>();
+        putAll(metadata, props);
+
         if (metadataLocation.equals(EMISSIVE_CONFIG)) {
             return readEmissiveFile(props, repository::list);
         }
 
         if (metadataLocation.getPath().startsWith(ANIMATION_PATH_START)) {
-            return readAnimationFile(props, metadataLocation, repository);
+            return readAnimationFile(metadata, props, metadataLocation, repository);
         }
 
         throw new InvalidMetadataException(String.format("Support is not yet implemented for the OptiFine properties " +
@@ -159,30 +156,26 @@ public class PropertiesMetadataParser implements MetadataParser {
 
     /**
      * Reads metadata from an animation file.
+     * @param metadata              key-to-property map pre-filled with all properties in the file
      * @param props                 all read properties
      * @param metadataLocation      location of the animation file
      * @return all metadata from an animation files
      */
-    private static Map<ResourceLocation, MetadataView> readAnimationFile(Properties props,
-                                                                         ResourceLocation metadataLocation,
-                                                                         ResourceRepository repository)
-            throws InvalidMetadataException {
-        ResourceLocation from = convertToLocation(require(props, "from"), metadataLocation);
-        InputStream fromStream = findTextureStream(from, repository);
-
+    private static Map<ResourceLocation, MetadataView> readAnimationFile(
+            Map<String, PropertiesMetadataView.Value> metadata, Properties props,
+            ResourceLocation metadataLocation, ResourceRepository repository) throws InvalidMetadataException {
         ResourceLocation to = convertToLocation(require(props, "to"), metadataLocation);
 
-        ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder = new ImmutableMap.Builder<>();
+        if (props.containsKey("from")) {
+            ResourceLocation from = convertToLocation(props.getProperty("from"), metadataLocation);
+            InputStream fromStream = findTextureStream(from, repository);
+            metadata.put("texture", new PropertiesMetadataView.Value(fromStream));
+        }
 
-        builder.put("texture", new PropertiesMetadataView.Value(fromStream));
-        putIfValPresent(builder, props, "x", "x", Function.identity());
-        putIfValPresent(builder, props, "y", "y", Function.identity());
-        putIfValPresent(builder, props, "w", "width", Function.identity());
-        putIfValPresent(builder, props, "h", "height", Function.identity());
-        putIfValPresent(builder, props, "interpolate", "interpolate", Function.identity());
-        putIfValPresent(builder, props, "skip", "skip", Function.identity());
-        putIfValPresent(builder, props, "duration", "frameTime", Function.identity());
-        buildFrameList(props).ifPresent((value) -> builder.put("frames", value));
+        putIfValPresent(metadata, props, "w", "width", Function.identity());
+        putIfValPresent(metadata, props, "h", "height", Function.identity());
+        putIfValPresent(metadata, props, "duration", "frameTime", Function.identity());
+        buildFrameList(props).ifPresent((value) -> metadata.put("frames", value));
 
         return ImmutableMap.of(
                 to,
@@ -193,7 +186,7 @@ public class PropertiesMetadataParser implements MetadataParser {
                                         "parts",
                                         new PropertiesMetadataView.Value(ImmutableMap.of(
                                                 "0",
-                                                new PropertiesMetadataView.Value(builder.build())
+                                                new PropertiesMetadataView.Value(ImmutableMap.copyOf(metadata))
                                         ))
                                 ))
                         )
@@ -243,8 +236,7 @@ public class PropertiesMetadataParser implements MetadataParser {
             String durationKey = "duration." + index;
             String tileKey = "tile." + index;
 
-            ImmutableMap.Builder<String, PropertiesMetadataView.Value> frame =
-                    new ImmutableMap.Builder<>();
+            ImmutableMap.Builder<String, PropertiesMetadataView.Value> frame = new ImmutableMap.Builder<>();
 
             if (props.containsKey(durationKey)) {
                 frame.put(
@@ -276,7 +268,7 @@ public class PropertiesMetadataParser implements MetadataParser {
      * @param destinationKey    key of the transformed property that will be added to the builder
      * @param transformer       function to transform the value (only called if the value is non-null)
      */
-    private static void putIfValPresent(ImmutableMap.Builder<String, PropertiesMetadataView.Value> builder,
+    private static void putIfValPresent(Map<String, PropertiesMetadataView.Value> builder,
                                         Properties props, String sourceKey, String destinationKey,
                                         Function<String, String> transformer) {
         String value = props.getProperty(sourceKey);
@@ -287,16 +279,32 @@ public class PropertiesMetadataParser implements MetadataParser {
     }
 
     /**
-     * Resolves the filePath with respect to the basePath.
-     * @param basePath      base path of the file
-     * @param filePath      path within the base path of the file
-     * @return the filePath resolved and normalized with respect to the basePath
+     * Puts all properties in the given metadata.
+     * @param metadata  map holding in-progress metadata
+     * @param props     all properties to put in the metadata
      */
-    private static String resolve(Path basePath, Path filePath) {
+    private static void putAll(Map<String, PropertiesMetadataView.Value> metadata,
+                               Properties props) {
+        for (Object key : props.keySet()) {
+            metadata.put((String) key, new PropertiesMetadataView.Value((String) props.get(key)));
+        }
+    }
 
-        // Need to handle backslashes on Windows
-        return basePath.resolve(filePath).normalize().toString().replace("\\", "/");
+    /**
+     * Gets the parent of a file, assuming the file does not end with a slash.
+     * @param path      path to the file
+     * @return parent of the file
+     */
+    private static String parent(String path) {
+        int slashIndex = path.lastIndexOf('/');
+        if (slashIndex >= 0) {
 
+            // Include the slash if the file has a parent
+            return path.substring(0, slashIndex + 1);
+
+        }
+
+        return "";
     }
 
     /**
@@ -306,45 +314,19 @@ public class PropertiesMetadataParser implements MetadataParser {
      * @return path with special characters expanded
      */
     private static String expandPath(String path, ResourceLocation metadataLocation) {
-
-        // Process namespace
+        String namespace = "minecraft";
         if (path.contains(NAMESPACE_SEP)) {
             int separatorIndex = path.indexOf(NAMESPACE_SEP);
-            String namespace = path.substring(0, separatorIndex);
+            namespace = path.substring(0, separatorIndex);
             path = path.substring(separatorIndex + 1);
-            path = ASSETS_DIR + PATH_SEP + namespace + PATH_SEP + path;
+        } else if (path.startsWith("~")) {
+            path = path.replace("~", "optifine");
+        } else if (path.startsWith("./")) {
+            namespace = metadataLocation.getNamespace();
+            path = path.replace("./", parent(metadataLocation.getPath()));
         }
 
-        // Process home
-        path = path.replace("~", OPTIFINE_HOME);
-
-        // Process ./, ../, and no start symbol
-        try {
-            Path userPath = Paths.get(path);
-
-            if (path.startsWith("./") || path.startsWith("../")) {
-                Path metadataPath = Paths.get(ASSETS_DIR, metadataLocation.getNamespace(), metadataLocation.getPath())
-                        .getParent();
-                path = resolve(metadataPath, userPath);
-            } else {
-                Path homePath = Paths.get(MC_HOME);
-                path = resolve(homePath, userPath);
-            }
-        } catch (InvalidPathException ignored) {
-
-            // An exception will be raised in the caller when the path is converted to a ResourceLocation
-            return path;
-
-        }
-
-        /* At this point, the path has been normalized to /assets/namespace/...
-           Now, we need to add the namespace so that it is properly converted to a ResourceLocation. */
-        path = path.substring(ASSETS_DIR.length() + 1);
-        int separatorIndex = path.indexOf(PATH_SEP);
-        String namespace = path.substring(0, separatorIndex);
-        path = namespace + NAMESPACE_SEP + path.substring(separatorIndex + 1);
-
-        return path;
+        return namespace + NAMESPACE_SEP + path;
     }
 
     /**
