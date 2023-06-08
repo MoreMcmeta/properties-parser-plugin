@@ -101,11 +101,18 @@ public class PropertiesMetadataParser implements MetadataParser {
                         ))
         );
 
-        MetadataView combinedAnimationView = new PropertiesMetadataView(ImmutableMap.of(
-                ANIMATION_SECTION, new PropertiesMetadataView.Value(ImmutableMap.of(
-                        PARTS_KEY, new PropertiesMetadataView.Value(combinedAnimations)
-                ))
-        ));
+        ImmutableMap<String, PropertiesMetadataView.Value> animationSection;
+        if (combinedAnimations.size() > 0) {
+            animationSection = ImmutableMap.of(
+                    ANIMATION_SECTION, new PropertiesMetadataView.Value(ImmutableMap.of(
+                            PARTS_KEY, new PropertiesMetadataView.Value(combinedAnimations)
+                    ))
+            );
+        } else {
+            animationSection = ImmutableMap.of();
+        }
+
+        MetadataView combinedAnimationView = new PropertiesMetadataView(animationSection);
 
         // Include other views to avoid losing non-animation sections
         List<? extends MetadataView> sortedViews = metadataByLocation.keySet().stream()

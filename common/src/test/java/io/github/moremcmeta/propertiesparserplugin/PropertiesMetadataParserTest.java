@@ -1,6 +1,7 @@
 package io.github.moremcmeta.propertiesparserplugin;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.InvalidMetadataException;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
@@ -22,9 +23,151 @@ import static org.junit.Assert.*;
  */
 public class PropertiesMetadataParserTest {
     private static final PropertiesMetadataParser PARSER = new PropertiesMetadataParser();
+    private static final PropertiesMetadataView DUMMY_EMISSIVE_VIEW = new PropertiesMetadataView(ImmutableMap.of(
+            "overlay", new PropertiesMetadataView.Value(ImmutableMap.of(
+                    "texture", new PropertiesMetadataView.Value("dummy_e.png"),
+                    "emissive", new PropertiesMetadataView.Value("true")
+            ))
+    ));
+    private static final PropertiesMetadataView DUMMY_OTHER_VIEW = new PropertiesMetadataView(ImmutableMap.of(
+            "other", new PropertiesMetadataView.Value(ImmutableMap.of(
+                    "abcd", new PropertiesMetadataView.Value("efgh")
+            ))
+    ));
+    private static final PropertiesMetadataView DUMMY_ANIMATION_VIEW_1 = new PropertiesMetadataView(ImmutableMap.of(
+            "animation", new PropertiesMetadataView.Value(ImmutableMap.of(
+                    "parts", new PropertiesMetadataView.Value(ImmutableMap.of(
+                            "0", new PropertiesMetadataView.Value(ImmutableMap.of(
+                                    "width", new PropertiesMetadataView.Value("0")
+                            ))
+                    ))
+            ))
+    ));
+    private static final PropertiesMetadataView DUMMY_ANIMATION_VIEW_2 = new PropertiesMetadataView(ImmutableMap.of(
+            "animation", new PropertiesMetadataView.Value(ImmutableMap.of(
+                    "parts", new PropertiesMetadataView.Value(ImmutableMap.of(
+                            "0", new PropertiesMetadataView.Value(ImmutableMap.of(
+                                    "width", new PropertiesMetadataView.Value("1")
+                            ))
+                    ))
+            ))
+    ));
+    private static final PropertiesMetadataView DUMMY_ANIMATION_VIEW_3 = new PropertiesMetadataView(ImmutableMap.of(
+            "animation", new PropertiesMetadataView.Value(ImmutableMap.of(
+                    "parts", new PropertiesMetadataView.Value(ImmutableMap.of(
+                            "0", new PropertiesMetadataView.Value(ImmutableMap.of(
+                                    "width", new PropertiesMetadataView.Value("2")
+                            ))
+                    ))
+            ))
+    ));
 
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
+
+    @Test
+    public void combine_None_EmptyView() throws InvalidMetadataException {
+        MetadataView view = PARSER.combine(new ResourceLocation("dummy.png"), ImmutableMap.of());
+        assertEquals(0, view.size());
+    }
+
+    @Test
+    public void combine_NoAnimationsNoConflict_CombinedByMetadataLocation() throws InvalidMetadataException {
+        MetadataView view = PARSER.combine(new ResourceLocation("dummy.png"), ImmutableMap.of(
+                new ResourceLocation("other.png.properties"), DUMMY_OTHER_VIEW,
+                new ResourceLocation("dummy.png.properties"), DUMMY_EMISSIVE_VIEW
+        ));
+
+        assertEquals(2, view.size());
+        assertEquals(ImmutableList.of("overlay", "other"), ImmutableList.copyOf(view.keys()));
+
+        MetadataView emissiveSection = view.subView("overlay").orElseThrow();
+        assertTrue(emissiveSection.booleanValue("emissive").orElseThrow());
+        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").orElseThrow());
+
+        assertEquals("efgh", view.subView("other").orElseThrow().stringValue("abcd").orElseThrow());
+    }
+
+    @Test
+    public void combine_OneAnimationNoConflict_CombinedByMetadataLocation() throws InvalidMetadataException {
+        MetadataView view = PARSER.combine(new ResourceLocation("dummy.png"), ImmutableMap.of(
+                new ResourceLocation("other.png.properties"), DUMMY_OTHER_VIEW,
+                new ResourceLocation("dummy.png.properties"), DUMMY_EMISSIVE_VIEW,
+                new ResourceLocation("z1.png.properties"), DUMMY_ANIMATION_VIEW_1
+        ));
+
+        assertEquals(3, view.size());
+        assertEquals(ImmutableList.of("animation", "overlay", "other"), ImmutableList.copyOf(view.keys()));
+
+        MetadataView emissiveSection = view.subView("overlay").orElseThrow();
+        assertTrue(emissiveSection.booleanValue("emissive").orElseThrow());
+        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").orElseThrow());
+
+        assertEquals("efgh", view.subView("other").orElseThrow().stringValue("abcd").orElseThrow());
+
+        assertEquals(
+                0,
+                (int) view.subView("animation").orElseThrow()
+                        .subView("parts").orElseThrow()
+                        .subView(0).orElseThrow()
+                        .integerValue("width").orElseThrow()
+        );
+    }
+
+    @Test
+    public void combine_MultipleAnimationsNoConflict_CombinedByMetadataLocation() throws InvalidMetadataException {
+        MetadataView view = PARSER.combine(new ResourceLocation("dummy.png"), ImmutableMap.of(
+                new ResourceLocation("other.png.properties"), DUMMY_OTHER_VIEW,
+                new ResourceLocation("dummy.png.properties"), DUMMY_EMISSIVE_VIEW,
+                new ResourceLocation("z1.png.properties"), DUMMY_ANIMATION_VIEW_1,
+                new ResourceLocation("z3.png.properties"), DUMMY_ANIMATION_VIEW_3,
+                new ResourceLocation("z2.png.properties"), DUMMY_ANIMATION_VIEW_2
+        ));
+
+        assertEquals(3, view.size());
+        assertEquals(ImmutableList.of("animation", "overlay", "other"), ImmutableList.copyOf(view.keys()));
+
+        MetadataView emissiveSection = view.subView("overlay").orElseThrow();
+        assertTrue(emissiveSection.booleanValue("emissive").orElseThrow());
+        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").orElseThrow());
+
+        assertEquals("efgh", view.subView("other").orElseThrow().stringValue("abcd").orElseThrow());
+
+        assertEquals(
+                0,
+                (int) view.subView("animation").orElseThrow()
+                        .subView("parts").orElseThrow()
+                        .subView(0).orElseThrow()
+                        .integerValue("width").orElseThrow()
+        );
+        assertEquals(
+                2,
+                (int) view.subView("animation").orElseThrow()
+                        .subView("parts").orElseThrow()
+                        .subView(1).orElseThrow()
+                        .integerValue("width").orElseThrow()
+        );
+        assertEquals(
+                1,
+                (int) view.subView("animation").orElseThrow()
+                        .subView("parts").orElseThrow()
+                        .subView(2).orElseThrow()
+                        .integerValue("width").orElseThrow()
+        );
+    }
+
+    @Test
+    public void combine_ConflictingSections_InvalidMetadataException() throws InvalidMetadataException {
+        expectedException.expect(InvalidMetadataException.class);
+        PARSER.combine(new ResourceLocation("dummy.png"), ImmutableMap.of(
+                new ResourceLocation("other.png.properties"), DUMMY_OTHER_VIEW,
+                new ResourceLocation("dummy.png.properties"), DUMMY_EMISSIVE_VIEW,
+                new ResourceLocation("z1.png.properties"), DUMMY_ANIMATION_VIEW_1,
+                new ResourceLocation("z3.png.properties"), DUMMY_ANIMATION_VIEW_3,
+                new ResourceLocation("z2.png.properties"), DUMMY_ANIMATION_VIEW_2,
+                new ResourceLocation("dummy2.png.properties"), DUMMY_EMISSIVE_VIEW
+        ));
+    }
 
     @Test
     public void parse_BadPropertiesFile_InvalidMetadataException() throws InvalidMetadataException, IOException {
