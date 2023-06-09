@@ -39,7 +39,7 @@ import static org.junit.Assert.assertTrue;
  * Tests the {@link PropertiesMetadataView}.
  * @author soir20
  */
-public class PropertiesMetadataViewTest {
+public final class PropertiesMetadataViewTest {
     private static final InputStream MOCK_STREAM = new ByteArrayInputStream("stream".getBytes());
 
     @Rule

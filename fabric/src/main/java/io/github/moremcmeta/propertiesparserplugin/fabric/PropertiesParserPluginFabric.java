@@ -26,7 +26,7 @@ import io.github.moremcmeta.propertiesparserplugin.ModConstants;
  * @author soir20
  */
 @SuppressWarnings("unused")
-public class PropertiesParserPluginFabric implements MoreMcmetaMetadataParserPlugin {
+public final class PropertiesParserPluginFabric implements MoreMcmetaMetadataParserPlugin {
     @Override
     public String extension() {
         return ModConstants.EXTENSION;

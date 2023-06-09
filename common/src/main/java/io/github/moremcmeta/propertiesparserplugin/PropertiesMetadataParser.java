@@ -46,7 +46,7 @@ import java.util.stream.IntStream;
  * Reads metadata from .properties files.
  * @author soir20
  */
-public class PropertiesMetadataParser implements MetadataParser {
+public final class PropertiesMetadataParser implements MetadataParser {
     private static final ResourceLocation EMISSIVE_CONFIG = new ResourceLocation("optifine/emissive.properties");
     private static final String ANIMATION_PATH_START = "optifine/anim/";
     private static final String NAMESPACE_SEP = ":";

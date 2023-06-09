@@ -33,7 +33,7 @@ import static java.util.Objects.requireNonNull;
  * {@link MetadataView} implementation with an underlying .properties format.
  * @author soir20
  */
-public class PropertiesMetadataView implements MetadataView {
+public final class PropertiesMetadataView implements MetadataView {
     private final Map<String, Value> PROPERTIES;
     private final List<Value> VALUES_BY_INDEX;
 

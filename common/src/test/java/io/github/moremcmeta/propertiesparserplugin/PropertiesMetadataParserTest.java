@@ -38,7 +38,7 @@ import static org.junit.Assert.*;
  * Tests the {@link PropertiesMetadataParser}.
  * @author soir20
  */
-public class PropertiesMetadataParserTest {
+public final class PropertiesMetadataParserTest {
     private static final PropertiesMetadataParser PARSER = new PropertiesMetadataParser();
     private static final PropertiesMetadataView DUMMY_EMISSIVE_VIEW = new PropertiesMetadataView(ImmutableMap.of(
             "overlay", new PropertiesMetadataView.Value(ImmutableMap.of(

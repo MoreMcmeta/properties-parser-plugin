@@ -29,7 +29,7 @@ import net.minecraftforge.network.NetworkConstants;
  */
 @Mod(ModConstants.MOD_ID)
 @SuppressWarnings("unused")
-public class EntrypointForge {
+public final class EntrypointForge {
 
     /**
      * Serves as mod entrypoint on Forge and tells the server to ignore this mod.

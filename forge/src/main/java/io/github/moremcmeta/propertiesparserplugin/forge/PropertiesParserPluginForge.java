@@ -28,7 +28,7 @@ import io.github.moremcmeta.propertiesparserplugin.ModConstants;
  */
 @SuppressWarnings("unused")
 @MoreMcmetaClientPlugin
-public class PropertiesParserPluginForge implements MoreMcmetaMetadataParserPlugin {
+public final class PropertiesParserPluginForge implements MoreMcmetaMetadataParserPlugin {
     @Override
     public String extension() {
         return ModConstants.EXTENSION;

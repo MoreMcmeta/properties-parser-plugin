@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * A mock {@link ResourceRepository} for testing.
  * @author soir20
  */
-public class MockResourceRepository implements ResourceRepository {
+public final class MockResourceRepository implements ResourceRepository {
     private final List<Set<ResourceLocation>> PACKS;
     private final boolean BAD_PACKS;
 
