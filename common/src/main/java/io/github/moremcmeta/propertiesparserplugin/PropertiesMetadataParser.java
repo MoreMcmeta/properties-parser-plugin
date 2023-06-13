@@ -29,7 +29,6 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -97,17 +96,18 @@ public final class PropertiesMetadataParser implements MetadataParser {
         }
 
         // Combine all animations together into one view
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
         List<PropertiesMetadataView.Value> animations = metadataByLocation.values().stream()
                 .filter((view) -> view.subView(ANIMATION_SECTION).isPresent())
-                .map((view) -> view.subView(ANIMATION_SECTION).orElseThrow())
+                .map((view) -> view.subView(ANIMATION_SECTION).get())
                 .filter((view) -> view.subView(PARTS_KEY).isPresent())
-                .map((view) -> view.subView(PARTS_KEY).orElseThrow())
+                .map((view) -> view.subView(PARTS_KEY).get())
                 .filter((view) -> view instanceof PropertiesMetadataView)
                 .map((view) -> (PropertiesMetadataView) view)
                 .flatMap((view) -> IntStream.range(0, view.size()).mapToObj(view::rawSubView))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .toList();
+                .collect(Collectors.toList());
 
         ImmutableMap<String, PropertiesMetadataView.Value> combinedAnimations = ImmutableMap.copyOf(
                 IntStream.range(0, animations.size())
@@ -132,11 +132,10 @@ public final class PropertiesMetadataParser implements MetadataParser {
         MetadataView combinedAnimationView = new PropertiesMetadataView(animationSection);
 
         // Include other views to avoid losing non-animation sections
-        List<? extends MetadataView> sortedViews = metadataByLocation.keySet().stream()
+        List<MetadataView> allViews = metadataByLocation.keySet().stream()
                 .sorted()
                 .map(metadataByLocation::get)
-                .toList();
-        List<MetadataView> allViews = new ArrayList<>(sortedViews);
+                .collect(Collectors.toList());
         allViews.add(0, combinedAnimationView);
 
         return new CombinedMetadataView(allViews);
@@ -228,12 +227,12 @@ public final class PropertiesMetadataParser implements MetadataParser {
     private static InputStream findTextureStream(ResourceLocation location, ResourceRepository repository)
             throws InvalidMetadataException {
         Optional<ResourceRepository.Pack> packWithFromTexture = repository.highestPackWith(location);
-        if (packWithFromTexture.isEmpty()) {
+        if (!packWithFromTexture.isPresent()) {
             throw new InvalidMetadataException("Unable to find texture " + location);
         }
 
         Optional<InputStream> textureOptional = packWithFromTexture.get().resource(location);
-        if (textureOptional.isEmpty()) {
+        if (!textureOptional.isPresent()) {
             throw new InvalidMetadataException("Unable to find texture that should exist " + location);
         }
 
@@ -250,7 +249,7 @@ public final class PropertiesMetadataParser implements MetadataParser {
                 .filter((propName) -> propName.matches("(duration|tile)\\.\\d+"))
                 .map((propName) -> Integer.parseInt(propName.substring(propName.indexOf('.') + 1)))
                 .max(Integer::compareTo);
-        if (maxDefinedTick.isEmpty()) {
+        if (!maxDefinedTick.isPresent()) {
             return Optional.empty();
         }
 

@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.InvalidMetadataException;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
 import net.minecraft.resources.ResourceLocation;
+import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -30,6 +31,7 @@ import org.junit.rules.ExpectedException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -38,6 +40,7 @@ import static org.junit.Assert.*;
  * Tests the {@link PropertiesMetadataParser}.
  * @author soir20
  */
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 public final class PropertiesMetadataParserTest {
     private static final PropertiesMetadataParser PARSER = new PropertiesMetadataParser();
     private static final PropertiesMetadataView DUMMY_EMISSIVE_VIEW = new PropertiesMetadataView(ImmutableMap.of(
@@ -98,11 +101,11 @@ public final class PropertiesMetadataParserTest {
         assertEquals(2, view.size());
         assertEquals(ImmutableList.of("overlay", "other"), ImmutableList.copyOf(view.keys()));
 
-        MetadataView emissiveSection = view.subView("overlay").orElseThrow();
-        assertTrue(emissiveSection.booleanValue("emissive").orElseThrow());
-        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").orElseThrow());
+        MetadataView emissiveSection = view.subView("overlay").get();
+        assertTrue(emissiveSection.booleanValue("emissive").get());
+        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").get());
 
-        assertEquals("efgh", view.subView("other").orElseThrow().stringValue("abcd").orElseThrow());
+        assertEquals("efgh", view.subView("other").get().stringValue("abcd").get());
     }
 
     @Test
@@ -116,18 +119,18 @@ public final class PropertiesMetadataParserTest {
         assertEquals(3, view.size());
         assertEquals(ImmutableList.of("animation", "overlay", "other"), ImmutableList.copyOf(view.keys()));
 
-        MetadataView emissiveSection = view.subView("overlay").orElseThrow();
-        assertTrue(emissiveSection.booleanValue("emissive").orElseThrow());
-        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").orElseThrow());
+        MetadataView emissiveSection = view.subView("overlay").get();
+        assertTrue(emissiveSection.booleanValue("emissive").get());
+        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").get());
 
-        assertEquals("efgh", view.subView("other").orElseThrow().stringValue("abcd").orElseThrow());
+        assertEquals("efgh", view.subView("other").get().stringValue("abcd").get());
 
         assertEquals(
                 0,
-                (int) view.subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
-                        .integerValue("width").orElseThrow()
+                (int) view.subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
+                        .integerValue("width").get()
         );
     }
 
@@ -144,32 +147,32 @@ public final class PropertiesMetadataParserTest {
         assertEquals(3, view.size());
         assertEquals(ImmutableList.of("animation", "overlay", "other"), ImmutableList.copyOf(view.keys()));
 
-        MetadataView emissiveSection = view.subView("overlay").orElseThrow();
-        assertTrue(emissiveSection.booleanValue("emissive").orElseThrow());
-        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").orElseThrow());
+        MetadataView emissiveSection = view.subView("overlay").get();
+        assertTrue(emissiveSection.booleanValue("emissive").get());
+        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").get());
 
-        assertEquals("efgh", view.subView("other").orElseThrow().stringValue("abcd").orElseThrow());
+        assertEquals("efgh", view.subView("other").get().stringValue("abcd").get());
 
         assertEquals(
                 0,
-                (int) view.subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
-                        .integerValue("width").orElseThrow()
+                (int) view.subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
+                        .integerValue("width").get()
         );
         assertEquals(
                 2,
-                (int) view.subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(1).orElseThrow()
-                        .integerValue("width").orElseThrow()
+                (int) view.subView("animation").get()
+                        .subView("parts").get()
+                        .subView(1).get()
+                        .integerValue("width").get()
         );
         assertEquals(
                 1,
-                (int) view.subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(2).orElseThrow()
-                        .integerValue("width").orElseThrow()
+                (int) view.subView("animation").get()
+                        .subView("parts").get()
+                        .subView(2).get()
+                        .integerValue("width").get()
         );
     }
 
@@ -187,7 +190,7 @@ public final class PropertiesMetadataParserTest {
 
     @Test
     public void parse_BadPropertiesFile_InvalidMetadataException() throws InvalidMetadataException, IOException {
-        InputStream badStream = InputStream.nullInputStream();
+        InputStream badStream = IOUtils.toInputStream("dummy", StandardCharsets.UTF_8);
         badStream.close();
 
         expectedException.expect(InvalidMetadataException.class);
@@ -346,34 +349,34 @@ public final class PropertiesMetadataParserTest {
         assertEquals(4, views.size());
 
         MetadataView view1 = views.get(new ResourceLocation("textures/optifine/eyes.png"))
-                        .subView("overlay").orElseThrow();
+                        .subView("overlay").get();
         MetadataView view2 = views.get(new ResourceLocation("moremcmeta", "textures/dummy.png"))
-                .subView("overlay").orElseThrow();
+                .subView("overlay").get();
         MetadataView view3 = views.get(new ResourceLocation("textures/test.png"))
-                .subView("overlay").orElseThrow();
+                .subView("overlay").get();
         MetadataView view4 = views.get(new ResourceLocation("textures/entity/bee.png"))
-                .subView("overlay").orElseThrow();
+                .subView("overlay").get();
 
-        assertTrue(view1.booleanValue("emissive").orElseThrow());
-        assertTrue(view2.booleanValue("emissive").orElseThrow());
-        assertTrue(view3.booleanValue("emissive").orElseThrow());
-        assertTrue(view4.booleanValue("emissive").orElseThrow());
+        assertTrue(view1.booleanValue("emissive").get());
+        assertTrue(view2.booleanValue("emissive").get());
+        assertTrue(view3.booleanValue("emissive").get());
+        assertTrue(view4.booleanValue("emissive").get());
 
         assertEquals(
                 new ResourceLocation("textures/optifine/eyes_e.png"),
-                new ResourceLocation(view1.stringValue("texture").orElseThrow())
+                new ResourceLocation(view1.stringValue("texture").get())
         );
         assertEquals(
                 new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
-                new ResourceLocation(view2.stringValue("texture").orElseThrow())
+                new ResourceLocation(view2.stringValue("texture").get())
         );
         assertEquals(
                 new ResourceLocation("textures/test_e.png"),
-                new ResourceLocation(view3.stringValue("texture").orElseThrow())
+                new ResourceLocation(view3.stringValue("texture").get())
         );
         assertEquals(
                 new ResourceLocation("textures/entity/bee_e.png"),
-                new ResourceLocation(view4.stringValue("texture").orElseThrow())
+                new ResourceLocation(view4.stringValue("texture").get())
         );
     }
 
@@ -408,34 +411,34 @@ public final class PropertiesMetadataParserTest {
         assertEquals(4, views.size());
 
         MetadataView view1 = views.get(new ResourceLocation("textures/optifine/eyes.png"))
-                .subView("overlay").orElseThrow();
+                .subView("overlay").get();
         MetadataView view2 = views.get(new ResourceLocation("moremcmeta", "textures/dummy.png"))
-                .subView("overlay").orElseThrow();
+                .subView("overlay").get();
         MetadataView view3 = views.get(new ResourceLocation("textures/test.png"))
-                .subView("overlay").orElseThrow();
+                .subView("overlay").get();
         MetadataView view4 = views.get(new ResourceLocation("textures/entity/bee.png"))
-                .subView("overlay").orElseThrow();
+                .subView("overlay").get();
 
-        assertTrue(view1.booleanValue("emissive").orElseThrow());
-        assertTrue(view2.booleanValue("emissive").orElseThrow());
-        assertTrue(view3.booleanValue("emissive").orElseThrow());
-        assertTrue(view4.booleanValue("emissive").orElseThrow());
+        assertTrue(view1.booleanValue("emissive").get());
+        assertTrue(view2.booleanValue("emissive").get());
+        assertTrue(view3.booleanValue("emissive").get());
+        assertTrue(view4.booleanValue("emissive").get());
 
         assertEquals(
                 new ResourceLocation("textures/optifine/eyes_e.png"),
-                new ResourceLocation(view1.stringValue("texture").orElseThrow())
+                new ResourceLocation(view1.stringValue("texture").get())
         );
         assertEquals(
                 new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
-                new ResourceLocation(view2.stringValue("texture").orElseThrow())
+                new ResourceLocation(view2.stringValue("texture").get())
         );
         assertEquals(
                 new ResourceLocation("textures/test_e.png"),
-                new ResourceLocation(view3.stringValue("texture").orElseThrow())
+                new ResourceLocation(view3.stringValue("texture").get())
         );
         assertEquals(
                 new ResourceLocation("textures/entity/bee_e.png"),
-                new ResourceLocation(view4.stringValue("texture").orElseThrow())
+                new ResourceLocation(view4.stringValue("texture").get())
         );
     }
 
@@ -474,76 +477,76 @@ public final class PropertiesMetadataParserTest {
         );
 
         MetadataView animationView = views.get(new ResourceLocation("textures/entity/creeper.png"))
-                .subView("animation").orElseThrow()
-                .subView("parts").orElseThrow()
-                .subView(0).orElseThrow();
+                .subView("animation").get()
+                .subView("parts").get()
+                .subView(0).get();
 
         assertEquals(
                 ImmutableSet.of(new ResourceLocation("textures/entity/creeper.png")),
                 views.keySet()
         );
         assertTrue(animationView.byteStreamValue("texture").isPresent());
-        assertEquals(0, (int) animationView.integerValue("x").orElseThrow());
-        assertEquals(20, (int) animationView.integerValue("y").orElseThrow());
-        assertEquals(10, (int) animationView.integerValue("width").orElseThrow());
-        assertEquals(30, (int) animationView.integerValue("height").orElseThrow());
-        assertEquals(5, (int) animationView.integerValue("skip").orElseThrow());
-        assertTrue(animationView.booleanValue("interpolate").orElseThrow());
-        assertTrue(animationView.booleanValue("smoothAlpha").orElseThrow());
+        assertEquals(0, (int) animationView.integerValue("x").get());
+        assertEquals(20, (int) animationView.integerValue("y").get());
+        assertEquals(10, (int) animationView.integerValue("width").get());
+        assertEquals(30, (int) animationView.integerValue("height").get());
+        assertEquals(5, (int) animationView.integerValue("skip").get());
+        assertTrue(animationView.booleanValue("interpolate").get());
+        assertTrue(animationView.booleanValue("smoothAlpha").get());
 
-        MetadataView framesView = animationView.subView("frames").orElseThrow();
+        MetadataView framesView = animationView.subView("frames").get();
         assertEquals(5, framesView.size());
 
         assertEquals(
                 0,
-                (int) framesView.subView(0).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(0).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 3,
-                (int) framesView.subView(1).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(1).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 2,
-                (int) framesView.subView(2).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(2).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 1,
-                (int) framesView.subView(3).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(3).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 2,
-                (int) framesView.subView(4).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(4).get()
+                        .integerValue("index").get()
         );
 
         assertEquals(
                 5,
-                (int) framesView.subView(0).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(0).get()
+                        .integerValue("time").get()
         );
         assertEquals(
                 10,
-                (int) framesView.subView(1).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(1).get()
+                        .integerValue("time").get()
         );
         assertEquals(
                 15,
-                (int) framesView.subView(2).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(2).get()
+                        .integerValue("time").get()
         );
         assertEquals(
                 5,
-                (int) framesView.subView(3).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(3).get()
+                        .integerValue("time").get()
         );
         assertEquals(
                 20,
-                (int) framesView.subView(4).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(4).get()
+                        .integerValue("time").get()
         );
     }
 
@@ -580,73 +583,73 @@ public final class PropertiesMetadataParserTest {
         );
 
         MetadataView animationView = views.get(new ResourceLocation("textures/entity/creeper.png"))
-                .subView("animation").orElseThrow()
-                .subView("parts").orElseThrow()
-                .subView(0).orElseThrow();
+                .subView("animation").get()
+                .subView("parts").get()
+                .subView(0).get();
 
         assertEquals(
                 ImmutableSet.of(new ResourceLocation("textures/entity/creeper.png")),
                 views.keySet()
         );
         assertTrue(animationView.byteStreamValue("texture").isPresent());
-        assertEquals(0, (int) animationView.integerValue("x").orElseThrow());
-        assertEquals(20, (int) animationView.integerValue("y").orElseThrow());
-        assertEquals(10, (int) animationView.integerValue("width").orElseThrow());
-        assertEquals(30, (int) animationView.integerValue("height").orElseThrow());
+        assertEquals(0, (int) animationView.integerValue("x").get());
+        assertEquals(20, (int) animationView.integerValue("y").get());
+        assertEquals(10, (int) animationView.integerValue("width").get());
+        assertEquals(30, (int) animationView.integerValue("height").get());
 
-        MetadataView framesView = animationView.subView("frames").orElseThrow();
+        MetadataView framesView = animationView.subView("frames").get();
         assertEquals(5, framesView.size());
 
         assertEquals(
                 0,
-                (int) framesView.subView(0).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(0).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 3,
-                (int) framesView.subView(1).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(1).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 2,
-                (int) framesView.subView(2).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(2).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 1,
-                (int) framesView.subView(3).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(3).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 2,
-                (int) framesView.subView(4).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(4).get()
+                        .integerValue("index").get()
         );
 
         assertEquals(
                 5,
-                (int) framesView.subView(0).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(0).get()
+                        .integerValue("time").get()
         );
         assertEquals(
                 10,
-                (int) framesView.subView(1).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(1).get()
+                        .integerValue("time").get()
         );
         assertEquals(
                 15,
-                (int) framesView.subView(2).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(2).get()
+                        .integerValue("time").get()
         );
         assertEquals(
                 5,
-                (int) framesView.subView(3).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(3).get()
+                        .integerValue("time").get()
         );
         assertEquals(
                 20,
-                (int) framesView.subView(4).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(4).get()
+                        .integerValue("time").get()
         );
     }
 
@@ -679,70 +682,70 @@ public final class PropertiesMetadataParserTest {
         );
 
         MetadataView animationView = views.get(new ResourceLocation("textures/entity/creeper.png"))
-                .subView("animation").orElseThrow()
-                .subView("parts").orElseThrow()
-                .subView(0).orElseThrow();
+                .subView("animation").get()
+                .subView("parts").get()
+                .subView(0).get();
 
         assertEquals(
                 ImmutableSet.of(new ResourceLocation("textures/entity/creeper.png")),
                 views.keySet()
         );
         assertTrue(animationView.byteStreamValue("texture").isPresent());
-        assertEquals(0, (int) animationView.integerValue("x").orElseThrow());
-        assertEquals(20, (int) animationView.integerValue("y").orElseThrow());
-        assertEquals(10, (int) animationView.integerValue("width").orElseThrow());
-        assertEquals(30, (int) animationView.integerValue("height").orElseThrow());
+        assertEquals(0, (int) animationView.integerValue("x").get());
+        assertEquals(20, (int) animationView.integerValue("y").get());
+        assertEquals(10, (int) animationView.integerValue("width").get());
+        assertEquals(30, (int) animationView.integerValue("height").get());
 
-        MetadataView framesView = animationView.subView("frames").orElseThrow();
+        MetadataView framesView = animationView.subView("frames").get();
         assertEquals(5, framesView.size());
 
         assertEquals(
                 0,
-                (int) framesView.subView(0).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(0).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 3,
-                (int) framesView.subView(1).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(1).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 2,
-                (int) framesView.subView(2).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(2).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 3,
-                (int) framesView.subView(3).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(3).get()
+                        .integerValue("index").get()
         );
         assertEquals(
                 2,
-                (int) framesView.subView(4).orElseThrow()
-                        .integerValue("index").orElseThrow()
+                (int) framesView.subView(4).get()
+                        .integerValue("index").get()
         );
 
         assertEquals(
                 5,
-                (int) framesView.subView(0).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(0).get()
+                        .integerValue("time").get()
         );
         assertEquals(
                 10,
-                (int) framesView.subView(1).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(1).get()
+                        .integerValue("time").get()
         );
         assertFalse(
-                framesView.subView(2).orElseThrow()
+                framesView.subView(2).get()
                         .integerValue("time").isPresent()
         );
         assertEquals(
                 5,
-                (int) framesView.subView(3).orElseThrow()
-                        .integerValue("time").orElseThrow()
+                (int) framesView.subView(3).get()
+                        .integerValue("time").get()
         );
         assertFalse(
-                framesView.subView(4).orElseThrow()
+                framesView.subView(4).get()
                         .integerValue("time").isPresent()
         );
     }
@@ -766,9 +769,9 @@ public final class PropertiesMetadataParserTest {
         assertEquals(
                 1,
                 views.get(new ResourceLocation("textures/entity/creeper.png"))
-                        .subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
+                        .subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
                         .size()
         );
     }
@@ -806,9 +809,9 @@ public final class PropertiesMetadataParserTest {
 
         assertTrue(
                 views.get(new ResourceLocation("textures/entity/creeper.png"))
-                        .subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
+                        .subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
                         .byteStreamValue("texture").isPresent()
         );
     }
@@ -846,9 +849,9 @@ public final class PropertiesMetadataParserTest {
 
         assertTrue(
                 views.get(new ResourceLocation("textures/entity/creeper.png"))
-                        .subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
+                        .subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
                         .byteStreamValue("texture").isPresent()
         );
     }
@@ -886,9 +889,9 @@ public final class PropertiesMetadataParserTest {
 
         assertTrue(
                 views.get(new ResourceLocation("textures/entity/creeper.png"))
-                        .subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
+                        .subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
                         .byteStreamValue("texture").isPresent()
         );
     }
@@ -926,9 +929,9 @@ public final class PropertiesMetadataParserTest {
 
         assertTrue(
                 views.get(new ResourceLocation("textures/entity/creeper.png"))
-                        .subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
+                        .subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
                         .byteStreamValue("texture").isPresent()
         );
     }
@@ -966,9 +969,9 @@ public final class PropertiesMetadataParserTest {
 
         assertTrue(
                 views.get(new ResourceLocation("textures/entity/creeper.png"))
-                        .subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
+                        .subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
                         .byteStreamValue("texture").isPresent()
         );
     }
@@ -1008,9 +1011,9 @@ public final class PropertiesMetadataParserTest {
 
         assertTrue(
                 views.get(new ResourceLocation("textures/entity/creeper.png"))
-                        .subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
+                        .subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
                         .byteStreamValue("texture").isPresent()
         );
     }
@@ -1050,9 +1053,9 @@ public final class PropertiesMetadataParserTest {
 
         assertTrue(
                 views.get(new ResourceLocation("textures/entity/creeper.png"))
-                        .subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
+                        .subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
                         .byteStreamValue("texture").isPresent()
         );
     }
@@ -1089,9 +1092,9 @@ public final class PropertiesMetadataParserTest {
 
         assertFalse(
                 views.get(new ResourceLocation("textures/entity/creeper.png"))
-                        .subView("animation").orElseThrow()
-                        .subView("parts").orElseThrow()
-                        .subView(0).orElseThrow()
+                        .subView("animation").get()
+                        .subView("parts").get()
+                        .subView(0).get()
                         .hasKey("texture")
         );
     }

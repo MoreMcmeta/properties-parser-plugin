@@ -17,7 +17,9 @@
 
 package io.github.moremcmeta.propertiesparserplugin;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.NegativeKeyIndexException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,7 +31,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,6 +40,7 @@ import static org.junit.Assert.assertTrue;
  * Tests the {@link PropertiesMetadataView}.
  * @author soir20
  */
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 public final class PropertiesMetadataViewTest {
     private static final InputStream MOCK_STREAM = new ByteArrayInputStream("stream".getBytes());
 
@@ -87,7 +89,7 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void keys_Empty_NoKeys() {
         PropertiesMetadataView view = new PropertiesMetadataView(ImmutableMap.of());
-        assertEquals(List.of(), collectKeys(view.keys()));
+        assertEquals(ImmutableList.of(), collectKeys(view.keys()));
     }
 
     @Test
@@ -98,7 +100,7 @@ public final class PropertiesMetadataViewTest {
                 "test", new PropertiesMetadataView.Value("good morning")
         );
         PropertiesMetadataView view = new PropertiesMetadataView(root);
-        assertEquals(List.of("hello", "world", "test"), collectKeys(view.keys()));
+        assertEquals(ImmutableList.of("hello", "world", "test"), collectKeys(view.keys()));
     }
 
     @Test
@@ -114,7 +116,7 @@ public final class PropertiesMetadataViewTest {
         );
         
         PropertiesMetadataView view = new PropertiesMetadataView(root);
-        assertEquals(List.of("hello", "world", "test", "testing"), collectKeys(view.keys()));
+        assertEquals(ImmutableList.of("hello", "world", "test", "testing"), collectKeys(view.keys()));
     }
 
     @Test
@@ -349,79 +351,79 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void stringValueString_StringVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("hello world", view.stringValue("string val0").orElseThrow());
+        assertEquals("hello world", view.stringValue("string val0").get());
     }
 
     @Test
     public void stringValueString_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Integer.MAX_VALUE), view.stringValue("pos int val0").orElseThrow());
+        assertEquals(String.valueOf(Integer.MAX_VALUE), view.stringValue("pos int val0").get());
     }
 
     @Test
     public void stringValueString_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Integer.MIN_VALUE), view.stringValue("neg int val0").orElseThrow());
+        assertEquals(String.valueOf(Integer.MIN_VALUE), view.stringValue("neg int val0").get());
     }
 
     @Test
     public void stringValueString_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Long.MAX_VALUE), view.stringValue("pos long val0").orElseThrow());
+        assertEquals(String.valueOf(Long.MAX_VALUE), view.stringValue("pos long val0").get());
     }
 
     @Test
     public void stringValueString_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Long.MIN_VALUE), view.stringValue("neg long val0").orElseThrow());
+        assertEquals(String.valueOf(Long.MIN_VALUE), view.stringValue("neg long val0").get());
     }
 
     @Test
     public void stringValueString_PosBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("9223372036854775808", view.stringValue("pos int >64-bits val0").orElseThrow());
+        assertEquals("9223372036854775808", view.stringValue("pos int >64-bits val0").get());
     }
 
     @Test
     public void stringValueString_NegBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("-9223372036854775809", view.stringValue("neg int >64-bits val0").orElseThrow());
+        assertEquals("-9223372036854775809", view.stringValue("neg int >64-bits val0").get());
     }
 
     @Test
     public void stringValueString_PosFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Float.MAX_VALUE), view.stringValue("pos float val0").orElseThrow());
+        assertEquals(String.valueOf(Float.MAX_VALUE), view.stringValue("pos float val0").get());
     }
 
     @Test
     public void stringValueString_NegFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(-Float.MAX_VALUE), view.stringValue("neg float val0").orElseThrow());
+        assertEquals(String.valueOf(-Float.MAX_VALUE), view.stringValue("neg float val0").get());
     }
 
     @Test
     public void stringValueString_PosDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Double.MAX_VALUE), view.stringValue("pos double val0").orElseThrow());
+        assertEquals(String.valueOf(Double.MAX_VALUE), view.stringValue("pos double val0").get());
     }
 
     @Test
     public void stringValueString_NegDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(-Double.MAX_VALUE), view.stringValue("neg double val0").orElseThrow());
+        assertEquals(String.valueOf(-Double.MAX_VALUE), view.stringValue("neg double val0").get());
     }
 
     @Test
     public void stringValueString_TrueVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("true", view.stringValue("true val0").orElseThrow());
+        assertEquals("true", view.stringValue("true val0").get());
     }
 
     @Test
     public void stringValueString_FalseVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("false", view.stringValue("false val0").orElseThrow());
+        assertEquals("false", view.stringValue("false val0").get());
     }
 
     @Test
@@ -439,79 +441,79 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void stringValueIndex_StringVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("hello world", view.stringValue(0).orElseThrow());
+        assertEquals("hello world", view.stringValue(0).get());
     }
 
     @Test
     public void stringValueIndex_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Integer.MAX_VALUE), view.stringValue(1).orElseThrow());
+        assertEquals(String.valueOf(Integer.MAX_VALUE), view.stringValue(1).get());
     }
 
     @Test
     public void stringValueIndex_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Integer.MIN_VALUE), view.stringValue(2).orElseThrow());
+        assertEquals(String.valueOf(Integer.MIN_VALUE), view.stringValue(2).get());
     }
 
     @Test
     public void stringValueIndex_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Long.MAX_VALUE), view.stringValue(3).orElseThrow());
+        assertEquals(String.valueOf(Long.MAX_VALUE), view.stringValue(3).get());
     }
 
     @Test
     public void stringValueIndex_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Long.MIN_VALUE), view.stringValue(4).orElseThrow());
+        assertEquals(String.valueOf(Long.MIN_VALUE), view.stringValue(4).get());
     }
 
     @Test
     public void stringValueIndex_PosBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("9223372036854775808", view.stringValue(5).orElseThrow());
+        assertEquals("9223372036854775808", view.stringValue(5).get());
     }
 
     @Test
     public void stringValueIndex_NegBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("-9223372036854775809", view.stringValue(6).orElseThrow());
+        assertEquals("-9223372036854775809", view.stringValue(6).get());
     }
 
     @Test
     public void stringValueIndex_PosFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Float.MAX_VALUE), view.stringValue(7).orElseThrow());
+        assertEquals(String.valueOf(Float.MAX_VALUE), view.stringValue(7).get());
     }
 
     @Test
     public void stringValueIndex_NegFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(-Float.MAX_VALUE), view.stringValue(8).orElseThrow());
+        assertEquals(String.valueOf(-Float.MAX_VALUE), view.stringValue(8).get());
     }
 
     @Test
     public void stringValueIndex_PosDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(Double.MAX_VALUE), view.stringValue(9).orElseThrow());
+        assertEquals(String.valueOf(Double.MAX_VALUE), view.stringValue(9).get());
     }
 
     @Test
     public void stringValueIndex_NegDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(String.valueOf(-Double.MAX_VALUE), view.stringValue(10).orElseThrow());
+        assertEquals(String.valueOf(-Double.MAX_VALUE), view.stringValue(10).get());
     }
 
     @Test
     public void stringValueIndex_TrueVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("true", view.stringValue(11).orElseThrow());
+        assertEquals("true", view.stringValue(11).get());
     }
 
     @Test
     public void stringValueIndex_FalseVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals("false", view.stringValue(12).orElseThrow());
+        assertEquals("false", view.stringValue(12).get());
     }
 
     @Test
@@ -559,13 +561,13 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void integerValueString_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MAX_VALUE, (int) view.integerValue("pos int val0").orElseThrow());
+        assertEquals(Integer.MAX_VALUE, (int) view.integerValue("pos int val0").get());
     }
 
     @Test
     public void integerValueString_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MIN_VALUE, (int) view.integerValue("neg int val0").orElseThrow());
+        assertEquals(Integer.MIN_VALUE, (int) view.integerValue("neg int val0").get());
     }
 
     @Test
@@ -649,13 +651,13 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void integerValueIndex_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MAX_VALUE, (int) view.integerValue(1).orElseThrow());
+        assertEquals(Integer.MAX_VALUE, (int) view.integerValue(1).get());
     }
 
     @Test
     public void integerValueIndex_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MIN_VALUE, (int) view.integerValue(2).orElseThrow());
+        assertEquals(Integer.MIN_VALUE, (int) view.integerValue(2).get());
     }
 
     @Test
@@ -763,25 +765,25 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void longValueString_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MAX_VALUE, (long) view.longValue("pos int val0").orElseThrow());
+        assertEquals(Integer.MAX_VALUE, (long) view.longValue("pos int val0").get());
     }
 
     @Test
     public void longValueString_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MIN_VALUE, (long) view.longValue("neg int val0").orElseThrow());
+        assertEquals(Integer.MIN_VALUE, (long) view.longValue("neg int val0").get());
     }
 
     @Test
     public void longValueString_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Long.MAX_VALUE, (long) view.longValue("pos long val0").orElseThrow());
+        assertEquals(Long.MAX_VALUE, (long) view.longValue("pos long val0").get());
     }
 
     @Test
     public void longValueString_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Long.MIN_VALUE, (long) view.longValue("neg long val0").orElseThrow());
+        assertEquals(Long.MIN_VALUE, (long) view.longValue("neg long val0").get());
     }
 
     @Test
@@ -853,25 +855,25 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void longValueIndex_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MAX_VALUE, (long) view.longValue(1).orElseThrow());
+        assertEquals(Integer.MAX_VALUE, (long) view.longValue(1).get());
     }
 
     @Test
     public void longValueIndex_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MIN_VALUE, (long) view.longValue(2).orElseThrow());
+        assertEquals(Integer.MIN_VALUE, (long) view.longValue(2).get());
     }
 
     @Test
     public void longValueIndex_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Long.MAX_VALUE, (long) view.longValue(3).orElseThrow());
+        assertEquals(Long.MAX_VALUE, (long) view.longValue(3).get());
     }
 
     @Test
     public void longValueIndex_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Long.MIN_VALUE, (long) view.longValue(4).orElseThrow());
+        assertEquals(Long.MIN_VALUE, (long) view.longValue(4).get());
     }
 
     @Test
@@ -967,49 +969,49 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void floatValueString_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals((float) Integer.MAX_VALUE, view.floatValue("pos int val0").orElseThrow(), 0.000001);
+        assertEquals((float) Integer.MAX_VALUE, view.floatValue("pos int val0").get(), 0.000001);
     }
 
     @Test
     public void floatValueString_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals((float) Integer.MIN_VALUE, view.floatValue("neg int val0").orElseThrow(), 0.000001);
+        assertEquals((float) Integer.MIN_VALUE, view.floatValue("neg int val0").get(), 0.000001);
     }
 
     @Test
     public void floatValueString_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals((float) Long.MAX_VALUE, view.floatValue("pos long val0").orElseThrow(), 0.000001);
+        assertEquals((float) Long.MAX_VALUE, view.floatValue("pos long val0").get(), 0.000001);
     }
 
     @Test
     public void floatValueString_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals((float) Long.MIN_VALUE, view.floatValue("neg long val0").orElseThrow(), 0.000001);
+        assertEquals((float) Long.MIN_VALUE, view.floatValue("neg long val0").get(), 0.000001);
     }
 
     @Test
     public void floatValueString_PosBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(9223372036854775808f, view.floatValue("pos int >64-bits val0").orElseThrow(), 0.000001);
+        assertEquals(9223372036854775808f, view.floatValue("pos int >64-bits val0").get(), 0.000001);
     }
 
     @Test
     public void floatValueString_NegBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-9223372036854775809f, view.floatValue("neg int >64-bits val0").orElseThrow(), 0.000001);
+        assertEquals(-9223372036854775809f, view.floatValue("neg int >64-bits val0").get(), 0.000001);
     }
 
     @Test
     public void floatValueString_PosFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Float.MAX_VALUE, view.floatValue("pos float val0").orElseThrow(), 0.000001);
+        assertEquals(Float.MAX_VALUE, view.floatValue("pos float val0").get(), 0.000001);
     }
 
     @Test
     public void floatValueString_NegFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-Float.MAX_VALUE, view.floatValue("neg float val0").orElseThrow(), 0.000001);
+        assertEquals(-Float.MAX_VALUE, view.floatValue("neg float val0").get(), 0.000001);
     }
 
     @Test
@@ -1057,49 +1059,49 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void floatValueIndex_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals((float) Integer.MAX_VALUE, view.floatValue(1).orElseThrow(), 0.000001);
+        assertEquals((float) Integer.MAX_VALUE, view.floatValue(1).get(), 0.000001);
     }
 
     @Test
     public void floatValueIndex_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals((float) Integer.MIN_VALUE, view.floatValue(2).orElseThrow(), 0.000001);
+        assertEquals((float) Integer.MIN_VALUE, view.floatValue(2).get(), 0.000001);
     }
 
     @Test
     public void floatValueIndex_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals((float) Long.MAX_VALUE, view.floatValue(3).orElseThrow(), 0.000001);
+        assertEquals((float) Long.MAX_VALUE, view.floatValue(3).get(), 0.000001);
     }
 
     @Test
     public void floatValueIndex_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals((float) Long.MIN_VALUE, view.floatValue(4).orElseThrow(), 0.000001);
+        assertEquals((float) Long.MIN_VALUE, view.floatValue(4).get(), 0.000001);
     }
 
     @Test
     public void floatValueIndex_PosBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(9223372036854775808f, view.floatValue(5).orElseThrow(), 0.000001);
+        assertEquals(9223372036854775808f, view.floatValue(5).get(), 0.000001);
     }
 
     @Test
     public void floatValueIndex_NegBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-9223372036854775809f, view.floatValue(6).orElseThrow(), 0.000001);
+        assertEquals(-9223372036854775809f, view.floatValue(6).get(), 0.000001);
     }
 
     @Test
     public void floatValueIndex_PosFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Float.MAX_VALUE, view.floatValue(7).orElseThrow(), 0.000001);
+        assertEquals(Float.MAX_VALUE, view.floatValue(7).get(), 0.000001);
     }
 
     @Test
     public void floatValueIndex_NegFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-Float.MAX_VALUE, view.floatValue(8).orElseThrow(), 0.000001);
+        assertEquals(-Float.MAX_VALUE, view.floatValue(8).get(), 0.000001);
     }
 
     @Test
@@ -1171,61 +1173,61 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void doubleValueString_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MAX_VALUE, view.doubleValue("pos int val0").orElseThrow(), 0.000001);
+        assertEquals(Integer.MAX_VALUE, view.doubleValue("pos int val0").get(), 0.000001);
     }
 
     @Test
     public void doubleValueString_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MIN_VALUE, view.doubleValue("neg int val0").orElseThrow(), 0.000001);
+        assertEquals(Integer.MIN_VALUE, view.doubleValue("neg int val0").get(), 0.000001);
     }
 
     @Test
     public void doubleValueString_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Long.MAX_VALUE, view.doubleValue("pos long val0").orElseThrow(), 0.000001);
+        assertEquals(Long.MAX_VALUE, view.doubleValue("pos long val0").get(), 0.000001);
     }
 
     @Test
     public void doubleValueString_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Long.MIN_VALUE, view.doubleValue("neg long val0").orElseThrow(), 0.000001);
+        assertEquals(Long.MIN_VALUE, view.doubleValue("neg long val0").get(), 0.000001);
     }
 
     @Test
     public void doubleValueString_PosBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(9223372036854775808d, view.doubleValue("pos int >64-bits val0").orElseThrow(), 0.000001);
+        assertEquals(9223372036854775808d, view.doubleValue("pos int >64-bits val0").get(), 0.000001);
     }
 
     @Test
     public void doubleValueString_NegBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-9223372036854775809d, view.doubleValue("neg int >64-bits val0").orElseThrow(), 0.000001);
+        assertEquals(-9223372036854775809d, view.doubleValue("neg int >64-bits val0").get(), 0.000001);
     }
 
     @Test
     public void doubleValueString_PosFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(3.4028235E38d, view.doubleValue("pos float val0").orElseThrow(), 0.000001);
+        assertEquals(3.4028235E38d, view.doubleValue("pos float val0").get(), 0.000001);
     }
 
     @Test
     public void doubleValueString_NegFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-3.4028235E38d, view.doubleValue("neg float val0").orElseThrow(), 0.000001);
+        assertEquals(-3.4028235E38d, view.doubleValue("neg float val0").get(), 0.000001);
     }
 
     @Test
     public void doubleValueString_PosDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Double.MAX_VALUE, view.doubleValue("pos double val0").orElseThrow(), 0.000001);
+        assertEquals(Double.MAX_VALUE, view.doubleValue("pos double val0").get(), 0.000001);
     }
 
     @Test
     public void doubleValueString_NegDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-Double.MAX_VALUE, view.doubleValue("neg double val0").orElseThrow(), 0.000001);
+        assertEquals(-Double.MAX_VALUE, view.doubleValue("neg double val0").get(), 0.000001);
     }
 
     @Test
@@ -1261,61 +1263,61 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void doubleValueIndex_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MAX_VALUE, view.doubleValue(1).orElseThrow(), 0.000001);
+        assertEquals(Integer.MAX_VALUE, view.doubleValue(1).get(), 0.000001);
     }
 
     @Test
     public void doubleValueIndex_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MIN_VALUE, view.doubleValue(2).orElseThrow(), 0.000001);
+        assertEquals(Integer.MIN_VALUE, view.doubleValue(2).get(), 0.000001);
     }
 
     @Test
     public void doubleValueIndex_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Long.MAX_VALUE, view.doubleValue(3).orElseThrow(), 0.000001);
+        assertEquals(Long.MAX_VALUE, view.doubleValue(3).get(), 0.000001);
     }
 
     @Test
     public void doubleValueIndex_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Long.MIN_VALUE, view.doubleValue(4).orElseThrow(), 0.000001);
+        assertEquals(Long.MIN_VALUE, view.doubleValue(4).get(), 0.000001);
     }
 
     @Test
     public void doubleValueIndex_PosBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(9223372036854775808d, view.doubleValue(5).orElseThrow(), 0.000001);
+        assertEquals(9223372036854775808d, view.doubleValue(5).get(), 0.000001);
     }
 
     @Test
     public void doubleValueIndex_NegBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-9223372036854775809d, view.doubleValue(6).orElseThrow(), 0.000001);
+        assertEquals(-9223372036854775809d, view.doubleValue(6).get(), 0.000001);
     }
 
     @Test
     public void doubleValueIndex_PosFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(3.4028235E38d, view.doubleValue(7).orElseThrow(), 0.000001);
+        assertEquals(3.4028235E38d, view.doubleValue(7).get(), 0.000001);
     }
 
     @Test
     public void doubleValueIndex_NegFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-3.4028235E38d, view.doubleValue(8).orElseThrow(), 0.000001);
+        assertEquals(-3.4028235E38d, view.doubleValue(8).get(), 0.000001);
     }
 
     @Test
     public void doubleValueIndex_PosDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Double.MAX_VALUE, view.doubleValue(9).orElseThrow(), 0.000001);
+        assertEquals(Double.MAX_VALUE, view.doubleValue(9).get(), 0.000001);
     }
 
     @Test
     public void doubleValueIndex_NegDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(-Double.MAX_VALUE, view.doubleValue(10).orElseThrow(), 0.000001);
+        assertEquals(-Double.MAX_VALUE, view.doubleValue(10).get(), 0.000001);
     }
 
     @Test
@@ -1369,79 +1371,79 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void booleanValueString_StringVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("string val0").orElseThrow());
+        assertFalse(view.booleanValue("string val0").get());
     }
 
     @Test
     public void booleanValueString_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("pos int val0").orElseThrow());
+        assertFalse(view.booleanValue("pos int val0").get());
     }
 
     @Test
     public void booleanValueString_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("neg int val0").orElseThrow());
+        assertFalse(view.booleanValue("neg int val0").get());
     }
 
     @Test
     public void booleanValueString_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("pos long val0").orElseThrow());
+        assertFalse(view.booleanValue("pos long val0").get());
     }
 
     @Test
     public void booleanValueString_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("neg long val0").orElseThrow());
+        assertFalse(view.booleanValue("neg long val0").get());
     }
 
     @Test
     public void booleanValueString_PosBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("pos int >64-bits val0").orElseThrow());
+        assertFalse(view.booleanValue("pos int >64-bits val0").get());
     }
 
     @Test
     public void booleanValueString_NegBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("neg int >64-bits val0").orElseThrow());
+        assertFalse(view.booleanValue("neg int >64-bits val0").get());
     }
 
     @Test
     public void booleanValueString_PosFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("pos float val0").orElseThrow());
+        assertFalse(view.booleanValue("pos float val0").get());
     }
 
     @Test
     public void booleanValueString_NegFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("neg float val0").orElseThrow());
+        assertFalse(view.booleanValue("neg float val0").get());
     }
 
     @Test
     public void booleanValueString_PosDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("pos double val0").orElseThrow());
+        assertFalse(view.booleanValue("pos double val0").get());
     }
 
     @Test
     public void booleanValueString_NegDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("neg double val0").orElseThrow());
+        assertFalse(view.booleanValue("neg double val0").get());
     }
 
     @Test
     public void booleanValueString_TrueVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertTrue(view.booleanValue("true val0").orElseThrow());
+        assertTrue(view.booleanValue("true val0").get());
     }
 
     @Test
     public void booleanValueString_FalseVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue("false val0").orElseThrow());
+        assertFalse(view.booleanValue("false val0").get());
     }
 
     @Test
@@ -1459,79 +1461,79 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void booleanValueIndex_StringVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(0).orElseThrow());
+        assertFalse(view.booleanValue(0).get());
     }
 
     @Test
     public void booleanValueIndex_PosIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(1).orElseThrow());
+        assertFalse(view.booleanValue(1).get());
     }
 
     @Test
     public void booleanValueIndex_NegIntVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(2).orElseThrow());
+        assertFalse(view.booleanValue(2).get());
     }
 
     @Test
     public void booleanValueIndex_PosLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(3).orElseThrow());
+        assertFalse(view.booleanValue(3).get());
     }
 
     @Test
     public void booleanValueIndex_NegLongVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(4).orElseThrow());
+        assertFalse(view.booleanValue(4).get());
     }
 
     @Test
     public void booleanValueIndex_PosBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(5).orElseThrow());
+        assertFalse(view.booleanValue(5).get());
     }
 
     @Test
     public void booleanValueIndex_NegBeyond64BitsVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(6).orElseThrow());
+        assertFalse(view.booleanValue(6).get());
     }
 
     @Test
     public void booleanValueIndex_PosFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(7).orElseThrow());
+        assertFalse(view.booleanValue(7).get());
     }
 
     @Test
     public void booleanValueIndex_NegFloatVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(8).orElseThrow());
+        assertFalse(view.booleanValue(8).get());
     }
 
     @Test
     public void booleanValueIndex_PosDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(9).orElseThrow());
+        assertFalse(view.booleanValue(9).get());
     }
 
     @Test
     public void booleanValueIndex_NegDoubleVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(10).orElseThrow());
+        assertFalse(view.booleanValue(10).get());
     }
 
     @Test
     public void booleanValueIndex_TrueVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertTrue(view.booleanValue(11).orElseThrow());
+        assertTrue(view.booleanValue(11).get());
     }
 
     @Test
     public void booleanValueIndex_FalseVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.booleanValue(12).orElseThrow());
+        assertFalse(view.booleanValue(12).get());
     }
 
     @Test
@@ -1548,9 +1550,9 @@ public final class PropertiesMetadataViewTest {
                 "mixed case", new PropertiesMetadataView.Value("TrUe")
         );
         PropertiesMetadataView view = new PropertiesMetadataView(root);
-        assertTrue(view.booleanValue("lowercase").orElseThrow());
-        assertTrue(view.booleanValue("uppercase").orElseThrow());
-        assertTrue(view.booleanValue("mixed case").orElseThrow());
+        assertTrue(view.booleanValue("lowercase").get());
+        assertTrue(view.booleanValue("uppercase").get());
+        assertTrue(view.booleanValue("mixed case").get());
     }
 
     @Test
@@ -1561,9 +1563,9 @@ public final class PropertiesMetadataViewTest {
                 "mixed case", new PropertiesMetadataView.Value("TrUe")
         );
         PropertiesMetadataView view = new PropertiesMetadataView(root);
-        assertTrue(view.booleanValue(0).orElseThrow());
-        assertTrue(view.booleanValue(2).orElseThrow());
-        assertTrue(view.booleanValue(1).orElseThrow());
+        assertTrue(view.booleanValue(0).get());
+        assertTrue(view.booleanValue(2).get());
+        assertTrue(view.booleanValue(1).get());
     }
 
     @Test
@@ -1678,11 +1680,11 @@ public final class PropertiesMetadataViewTest {
     public void subViewString_ValidSubViewVal_ViewFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertEquals(
-                Set.of("string val1", "pos int val1", "neg int val1", "pos long val1", "neg long val1",
+                ImmutableSet.of("string val1", "pos int val1", "neg int val1", "pos long val1", "neg long val1",
                         "pos int >64-bits val1", "neg int >64-bits val1", "pos float val1", "neg float val1",
                         "pos double val1", "neg double val1", "true val1", "false val1", "valid subview val1",
                         "stream val1"),
-                new HashSet<>(collectKeys(view.subView("valid subview val0").orElseThrow().keys()))
+                new HashSet<>(collectKeys(view.subView("valid subview val0").get().keys()))
         );
     }
 
@@ -1781,11 +1783,11 @@ public final class PropertiesMetadataViewTest {
     public void subViewIndex_ValidSubViewVal_ViewFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertEquals(
-                Set.of("string val1", "pos int val1", "neg int val1", "pos long val1", "neg long val1",
+                ImmutableSet.of("string val1", "pos int val1", "neg int val1", "pos long val1", "neg long val1",
                         "pos int >64-bits val1", "neg int >64-bits val1", "pos float val1", "neg float val1",
                         "pos double val1", "neg double val1", "true val1", "false val1", "valid subview val1",
                         "stream val1"),
-                new HashSet<>(collectKeys(view.subView(13).orElseThrow().keys()))
+                new HashSet<>(collectKeys(view.subView(13).get().keys()))
         );
     }
 
@@ -1931,13 +1933,13 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void streamValueString_PosIntVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MAX_VALUE, (int) view.integerValue("pos int val0").orElseThrow());
+        assertEquals(Integer.MAX_VALUE, (int) view.integerValue("pos int val0").get());
     }
 
     @Test
     public void streamValueString_NegIntVal_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(Integer.MIN_VALUE, (int) view.integerValue("neg int val0").orElseThrow());
+        assertEquals(Integer.MIN_VALUE, (int) view.integerValue("neg int val0").get());
     }
 
     @Test
@@ -2009,7 +2011,7 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void streamValueString_StreamVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(MOCK_STREAM, view.byteStreamValue("stream val0").orElseThrow());
+        assertEquals(MOCK_STREAM, view.byteStreamValue("stream val0").get());
     }
 
     @Test
@@ -2099,7 +2101,7 @@ public final class PropertiesMetadataViewTest {
     @Test
     public void streamValueIndex_StreamVal_ValueFound() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertEquals(MOCK_STREAM, view.byteStreamValue(14).orElseThrow());
+        assertEquals(MOCK_STREAM, view.byteStreamValue(14).get());
     }
 
     @Test
