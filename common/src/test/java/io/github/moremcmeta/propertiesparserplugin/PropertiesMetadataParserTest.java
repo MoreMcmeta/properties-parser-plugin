@@ -180,7 +180,6 @@ public final class PropertiesMetadataParserTest {
                 new ResourceLocation("other.png.properties"), DUMMY_OTHER_VIEW,
                 new ResourceLocation("dummy.png.properties"), DUMMY_EMISSIVE_VIEW,
                 new ResourceLocation("z1.png.properties"), DUMMY_ANIMATION_VIEW_1,
-                new ResourceLocation("z3.png.properties"), DUMMY_ANIMATION_VIEW_3,
                 new ResourceLocation("z2.png.properties"), DUMMY_ANIMATION_VIEW_2,
                 new ResourceLocation("dummy2.png.properties"), DUMMY_EMISSIVE_VIEW
         ));
