@@ -21,6 +21,7 @@ import io.github.moremcmeta.moremcmeta.api.client.metadata.ResourceRepository;
 import net.minecraft.resources.ResourceLocation;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,28 +34,41 @@ import java.util.stream.Collectors;
  */
 public final class MockResourceRepository implements ResourceRepository {
     private final List<Set<ResourceLocation>> PACKS;
+    private final InputStream DUMMY_STREAM;
     private final boolean BAD_PACKS;
 
     public MockResourceRepository(List<Set<ResourceLocation>> packs) {
-        this(packs, false);
+        this(packs, false, new ByteArrayInputStream("dummy".getBytes()));
+    }
+
+    public MockResourceRepository(List<Set<ResourceLocation>> packs, InputStream dummyStream) {
+        this(packs, false, dummyStream);
     }
 
     public MockResourceRepository(List<Set<ResourceLocation>> packs, boolean badPacks) {
-        PACKS = packs;
-        BAD_PACKS = badPacks;
+        this(packs, badPacks, new ByteArrayInputStream("dummy".getBytes()));
     }
 
     @Override
     public Optional<Pack> highestPackWith(ResourceLocation location) {
         return PACKS.stream().filter((pack) -> pack.contains(location))
                 .findFirst()
-                .map((pack) -> (l) -> {
-                    if (pack.contains(l) && !BAD_PACKS) {
-                        return Optional.of(new ByteArrayInputStream("dummy".getBytes()));
-                    }
+                .map(this::makeMockPack);
+    }
 
-                    return Optional.empty();
-                });
+    @Override
+    public Optional<Pack> highestPackWith(ResourceLocation location, ResourceLocation floor) {
+        for (Set<ResourceLocation> pack : PACKS) {
+            if (pack.contains(location)) {
+                return Optional.of(makeMockPack(pack));
+            }
+
+            if (pack.contains(floor)) {
+                break;
+            }
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -63,5 +77,21 @@ public final class MockResourceRepository implements ResourceRepository {
                 .flatMap(Set::stream)
                 .filter((location) -> fileFilter.test(location.getPath()))
                 .collect(Collectors.toSet());
+    }
+
+    private MockResourceRepository(List<Set<ResourceLocation>> packs, boolean badPacks, InputStream dummyStream) {
+        PACKS = packs;
+        DUMMY_STREAM = dummyStream;
+        BAD_PACKS = badPacks;
+    }
+
+    private Pack makeMockPack(Set<ResourceLocation> pack) {
+        return (location) -> {
+            if (pack.contains(location) && !BAD_PACKS) {
+                return Optional.of(DUMMY_STREAM);
+            }
+
+            return Optional.empty();
+        };
     }
 }
