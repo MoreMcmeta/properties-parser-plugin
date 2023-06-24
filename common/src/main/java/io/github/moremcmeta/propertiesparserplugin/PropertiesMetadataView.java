@@ -251,7 +251,7 @@ public final class PropertiesMetadataView implements MetadataView {
             return Optional.empty();
         }
 
-        return Optional.of(new PropertiesMetadataView(value.SUB_VIEW));
+        return Optional.of(value.SUB_VIEW);
     }
 
     @Override
@@ -265,25 +265,7 @@ public final class PropertiesMetadataView implements MetadataView {
             return Optional.empty();
         }
 
-        return Optional.of(new PropertiesMetadataView(value.SUB_VIEW));
-    }
-
-    /**
-     * Gets the map underlying the sub view, if present.
-     * @param index       the index of the key whose sub-view value to retrieve
-     * @return map underlying the sub view wrapped in a {@link Value}, if present
-     */
-    public Optional<Value> rawSubView(int index) {
-        if (!hasKey(index)) {
-            return Optional.empty();
-        }
-
-        Value value = VALUES_BY_INDEX.get(index);
-        if (value.TYPE != ValueType.SUB_VIEW) {
-            return Optional.empty();
-        }
-
-        return Optional.of(value);
+        return Optional.of(value.SUB_VIEW);
     }
 
     /**
@@ -313,7 +295,7 @@ public final class PropertiesMetadataView implements MetadataView {
         private final ValueType TYPE;
         private final String STRING;
         private final InputStream BYTE_STREAM;
-        private final ImmutableMap<String, Value> SUB_VIEW;
+        private final MetadataView SUB_VIEW;
 
         /**
          * Creates a new wrapper with a string.
@@ -341,7 +323,7 @@ public final class PropertiesMetadataView implements MetadataView {
          * Creates a new wrapper with a sub view.
          * @param subView       sub view to store
          */
-        public Value(ImmutableMap<String, Value> subView) {
+        public Value(MetadataView subView) {
             STRING = null;
             BYTE_STREAM = null;
             SUB_VIEW = requireNonNull(subView, "Sub view cannot be null");
