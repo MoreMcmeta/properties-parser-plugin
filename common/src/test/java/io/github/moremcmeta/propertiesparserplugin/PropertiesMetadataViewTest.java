@@ -74,10 +74,10 @@ public final class PropertiesMetadataViewTest {
                 "hello", new PropertiesMetadataView.Value("10"),
                 "world", new PropertiesMetadataView.Value("true"),
                 "test", new PropertiesMetadataView.Value("good morning"),
-                "testing", new PropertiesMetadataView.Value(ImmutableMap.of(
+                "testing", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
                         "metadata", new PropertiesMetadataView.Value("20"),
                         "view", new PropertiesMetadataView.Value("false")
-                ))
+                )))
         );
         
         PropertiesMetadataView view = new PropertiesMetadataView(root);
@@ -107,10 +107,10 @@ public final class PropertiesMetadataViewTest {
                 "hello", new PropertiesMetadataView.Value("10"),
                 "world", new PropertiesMetadataView.Value("true"),
                 "test", new PropertiesMetadataView.Value("good morning"),
-                "testing", new PropertiesMetadataView.Value(ImmutableMap.of(
+                "testing", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
                         "metadata", new PropertiesMetadataView.Value("20"),
                         "view", new PropertiesMetadataView.Value("false")
-                ))
+                )))
         );
         
         PropertiesMetadataView view = new PropertiesMetadataView(root);
@@ -1802,109 +1802,6 @@ public final class PropertiesMetadataViewTest {
     }
 
     @Test
-    public void rawSubViewIndex_NegativeIndex_NegativeKeyIndexException() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        expectedException.expect(NegativeKeyIndexException.class);
-        assertFalse(view.rawSubView(-1).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_StringVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(0).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_PosIntVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(1).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_NegIntVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(2).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_PosLongVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(3).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_NegLongVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(4).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_PosBeyond64BitsVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(5).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_NegBeyond64BitsVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(6).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_PosFloatVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(7).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_NegFloatVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(8).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_PosDoubleVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(9).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_NegDoubleVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(10).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_TrueVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(11).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_FalseVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(12).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_ValidRawSubViewVal_ViewFound() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertTrue(view.rawSubView(13).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_StreamVal_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(14).isPresent());
-    }
-
-    @Test
-    public void rawSubViewIndex_IndexTooLarge_Empty() {
-        PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
-        assertFalse(view.rawSubView(15).isPresent());
-    }
-
-    @Test
     public void streamValueString_KeyNotPresent_Empty() {
         PropertiesMetadataView view = new PropertiesMetadataView(makeDemoMap());
         assertFalse(view.integerValue("not present").isPresent());
@@ -2134,7 +2031,7 @@ public final class PropertiesMetadataViewTest {
         root.put("neg double val" + level, new PropertiesMetadataView.Value(String.valueOf(-Double.MAX_VALUE)));
         root.put("true val" + level, new PropertiesMetadataView.Value(String.valueOf(true)));
         root.put("false val" + level, new PropertiesMetadataView.Value(String.valueOf(false)));
-        root.put("valid subview val" + level, new PropertiesMetadataView.Value(subView));
+        root.put("valid subview val" + level, new PropertiesMetadataView.Value(new PropertiesMetadataView(subView)));
         root.put("stream val" + level, new PropertiesMetadataView.Value(MOCK_STREAM));
 
         return root.build();
