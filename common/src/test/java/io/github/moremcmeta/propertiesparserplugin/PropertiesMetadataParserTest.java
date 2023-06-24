@@ -41,42 +41,47 @@ import static org.junit.Assert.*;
 public final class PropertiesMetadataParserTest {
     private static final PropertiesMetadataParser PARSER = new PropertiesMetadataParser();
     private static final PropertiesMetadataView DUMMY_EMISSIVE_VIEW = new PropertiesMetadataView(ImmutableMap.of(
-            "overlay", new PropertiesMetadataView.Value(ImmutableMap.of(
+            "overlay", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
                     "texture", new PropertiesMetadataView.Value("dummy_e.png"),
                     "emissive", new PropertiesMetadataView.Value("true")
             ))
-    ));
+    )));
     private static final PropertiesMetadataView DUMMY_OTHER_VIEW = new PropertiesMetadataView(ImmutableMap.of(
-            "other", new PropertiesMetadataView.Value(ImmutableMap.of(
+            "other", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
                     "abcd", new PropertiesMetadataView.Value("efgh")
             ))
-    ));
+    )));
     private static final PropertiesMetadataView DUMMY_ANIMATION_VIEW_1 = new PropertiesMetadataView(ImmutableMap.of(
-            "animation", new PropertiesMetadataView.Value(ImmutableMap.of(
-                    "parts", new PropertiesMetadataView.Value(ImmutableMap.of(
-                            "0", new PropertiesMetadataView.Value(ImmutableMap.of(
+            "animation", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
+                    "parts", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
+                            "0", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
                                     "width", new PropertiesMetadataView.Value("0")
-                            ))
-                    ))
-            ))
+                            )))
+                    )))
+            )))
     ));
     private static final PropertiesMetadataView DUMMY_ANIMATION_VIEW_2 = new PropertiesMetadataView(ImmutableMap.of(
-            "animation", new PropertiesMetadataView.Value(ImmutableMap.of(
-                    "parts", new PropertiesMetadataView.Value(ImmutableMap.of(
-                            "0", new PropertiesMetadataView.Value(ImmutableMap.of(
+            "animation", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
+                    "parts", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
+                            "0", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
                                     "width", new PropertiesMetadataView.Value("1")
-                            ))
-                    ))
-            ))
+                            )))
+                    )))
+            )))
     ));
     private static final PropertiesMetadataView DUMMY_ANIMATION_VIEW_3 = new PropertiesMetadataView(ImmutableMap.of(
-            "animation", new PropertiesMetadataView.Value(ImmutableMap.of(
-                    "parts", new PropertiesMetadataView.Value(ImmutableMap.of(
-                            "0", new PropertiesMetadataView.Value(ImmutableMap.of(
+            "animation", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
+                    "parts", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
+                            "0", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
                                     "width", new PropertiesMetadataView.Value("2")
-                            ))
-                    ))
-            ))
+                            )))
+                    )))
+            )))
+    ));
+    private static final PropertiesMetadataView DUMMY_NO_PARTS_ANIM_VIEW = new PropertiesMetadataView(ImmutableMap.of(
+            "animation", new PropertiesMetadataView.Value(new PropertiesMetadataView(ImmutableMap.of(
+                    "width", new PropertiesMetadataView.Value("2")
+            )))
     ));
 
     @Rule
@@ -103,6 +108,23 @@ public final class PropertiesMetadataParserTest {
         assertEquals("dummy_e.png", emissiveSection.stringValue("texture").orElseThrow());
 
         assertEquals("efgh", view.subView("other").orElseThrow().stringValue("abcd").orElseThrow());
+    }
+
+    @Test
+    public void combine_NoAnimationsWithParts_CombinedByMetadataLocation() throws InvalidMetadataException {
+        MetadataView view = PARSER.combine(new ResourceLocation("dummy.png"), ImmutableMap.of(
+                new ResourceLocation("other.png.properties"), DUMMY_NO_PARTS_ANIM_VIEW,
+                new ResourceLocation("dummy.png.properties"), DUMMY_EMISSIVE_VIEW
+        ));
+
+        assertEquals(2, view.size());
+        assertEquals(ImmutableList.of("overlay", "animation"), ImmutableList.copyOf(view.keys()));
+
+        MetadataView emissiveSection = view.subView("overlay").orElseThrow();
+        assertTrue(emissiveSection.booleanValue("emissive").orElseThrow());
+        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").orElseThrow());
+
+        assertEquals(2, (int) view.subView("animation").orElseThrow().integerValue("width").orElseThrow());
     }
 
     @Test
@@ -150,6 +172,48 @@ public final class PropertiesMetadataParserTest {
 
         assertEquals("efgh", view.subView("other").orElseThrow().stringValue("abcd").orElseThrow());
 
+        assertEquals(3, view.subView("animation").orElseThrow().subView("parts").orElseThrow().size());
+        assertEquals(
+                0,
+                (int) view.subView("animation").orElseThrow()
+                        .subView("parts").orElseThrow()
+                        .subView(0).orElseThrow()
+                        .integerValue("width").orElseThrow()
+        );
+        assertEquals(
+                2,
+                (int) view.subView("animation").orElseThrow()
+                        .subView("parts").orElseThrow()
+                        .subView(1).orElseThrow()
+                        .integerValue("width").orElseThrow()
+        );
+        assertEquals(
+                1,
+                (int) view.subView("animation").orElseThrow()
+                        .subView("parts").orElseThrow()
+                        .subView(2).orElseThrow()
+                        .integerValue("width").orElseThrow()
+        );
+    }
+
+    @Test
+    public void combine_AnimationsWithAndWithoutParts_WithoutPartsAnimationIgnored() throws InvalidMetadataException {
+        MetadataView view = PARSER.combine(new ResourceLocation("dummy.png"), ImmutableMap.of(
+                new ResourceLocation("other.png.properties"), DUMMY_NO_PARTS_ANIM_VIEW,
+                new ResourceLocation("dummy.png.properties"), DUMMY_EMISSIVE_VIEW,
+                new ResourceLocation("z1.png.properties"), DUMMY_ANIMATION_VIEW_1,
+                new ResourceLocation("z3.png.properties"), DUMMY_ANIMATION_VIEW_3,
+                new ResourceLocation("z2.png.properties"), DUMMY_ANIMATION_VIEW_2
+        ));
+
+        assertEquals(2, view.size());
+        assertEquals(ImmutableList.of("animation", "overlay"), ImmutableList.copyOf(view.keys()));
+
+        MetadataView emissiveSection = view.subView("overlay").orElseThrow();
+        assertTrue(emissiveSection.booleanValue("emissive").orElseThrow());
+        assertEquals("dummy_e.png", emissiveSection.stringValue("texture").orElseThrow());
+
+        assertEquals(3, view.subView("animation").orElseThrow().subView("parts").orElseThrow().size());
         assertEquals(
                 0,
                 (int) view.subView("animation").orElseThrow()
@@ -347,6 +411,140 @@ public final class PropertiesMetadataParserTest {
 
         MetadataView view1 = views.get(new ResourceLocation("textures/optifine/eyes.png"))
                         .subView("overlay").orElseThrow();
+        MetadataView view2 = views.get(new ResourceLocation("moremcmeta", "textures/dummy.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view3 = views.get(new ResourceLocation("textures/test.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view4 = views.get(new ResourceLocation("textures/entity/bee.png"))
+                .subView("overlay").orElseThrow();
+
+        assertTrue(view1.booleanValue("emissive").orElseThrow());
+        assertTrue(view2.booleanValue("emissive").orElseThrow());
+        assertTrue(view3.booleanValue("emissive").orElseThrow());
+        assertTrue(view4.booleanValue("emissive").orElseThrow());
+
+        assertEquals(
+                new ResourceLocation("textures/optifine/eyes_e.png"),
+                new ResourceLocation(view1.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                new ResourceLocation(view2.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("textures/test_e.png"),
+                new ResourceLocation(view3.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("textures/entity/bee_e.png"),
+                new ResourceLocation(view4.stringValue("texture").orElseThrow())
+        );
+    }
+
+    @Test
+    public void parse_HasEmissiveTexturesAndDefaultAnimationInSamePack_AllParsed() throws InvalidMetadataException {
+        Map<ResourceLocation, MetadataView> views = PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                makePropertiesStream(
+                        "suffix.emissive=_e"
+                ),
+                new MockResourceRepository(
+                        ImmutableList.of(
+                                ImmutableSet.of(
+                                        new ResourceLocation("textures/optifine/eyes.png"),
+                                        new ResourceLocation("textures/optifine/eyes_e.png"),
+                                        new ResourceLocation("textures/optifine/eyes.png.mcmeta")
+                                ),
+                                ImmutableSet.of(
+                                        new ResourceLocation("textures/test.png"),
+                                        new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                                        new ResourceLocation("optifine/emissive.properties"),
+                                        new ResourceLocation("textures/entity/witch.png"),
+                                        new ResourceLocation("textures/entity/witch_f.png"),
+                                        new ResourceLocation("textures/entity/bee_e.png"),
+                                        new ResourceLocation("textures/entity/dolphin_e")
+                                ),
+                                ImmutableSet.of(
+                                        new ResourceLocation("moremcmeta", "textures/dummy.png"),
+                                        new ResourceLocation("textures/test_e.png")
+                                )
+                        ),
+                        new ByteArrayInputStream("{ \"animation\": {} }".getBytes())
+                )
+        );
+
+        assertEquals(4, views.size());
+        assertTrue(views.get(new ResourceLocation("textures/optifine/eyes.png")).hasKey("animation"));
+
+        MetadataView view1 = views.get(new ResourceLocation("textures/optifine/eyes.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view2 = views.get(new ResourceLocation("moremcmeta", "textures/dummy.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view3 = views.get(new ResourceLocation("textures/test.png"))
+                .subView("overlay").orElseThrow();
+        MetadataView view4 = views.get(new ResourceLocation("textures/entity/bee.png"))
+                .subView("overlay").orElseThrow();
+
+        assertTrue(view1.booleanValue("emissive").orElseThrow());
+        assertTrue(view2.booleanValue("emissive").orElseThrow());
+        assertTrue(view3.booleanValue("emissive").orElseThrow());
+        assertTrue(view4.booleanValue("emissive").orElseThrow());
+
+        assertEquals(
+                new ResourceLocation("textures/optifine/eyes_e.png"),
+                new ResourceLocation(view1.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                new ResourceLocation(view2.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("textures/test_e.png"),
+                new ResourceLocation(view3.stringValue("texture").orElseThrow())
+        );
+        assertEquals(
+                new ResourceLocation("textures/entity/bee_e.png"),
+                new ResourceLocation(view4.stringValue("texture").orElseThrow())
+        );
+    }
+
+    @Test
+    public void parse_HasEmissiveTexturesAndDefaultAnimationInPackBelow_DefaultAnimIgnored() throws InvalidMetadataException {
+        Map<ResourceLocation, MetadataView> views = PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                makePropertiesStream(
+                        "suffix.emissive=_e"
+                ),
+                new MockResourceRepository(
+                        ImmutableList.of(
+                                ImmutableSet.of(
+                                        new ResourceLocation("textures/optifine/eyes.png"),
+                                        new ResourceLocation("textures/optifine/eyes_e.png")
+                                ),
+                                ImmutableSet.of(
+                                        new ResourceLocation("textures/test.png"),
+                                        new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                                        new ResourceLocation("optifine/emissive.properties"),
+                                        new ResourceLocation("textures/entity/witch.png"),
+                                        new ResourceLocation("textures/entity/witch_f.png"),
+                                        new ResourceLocation("textures/entity/bee_e.png"),
+                                        new ResourceLocation("textures/entity/dolphin_e"),
+                                        new ResourceLocation("textures/optifine/eyes.png.mcmeta")
+                                ),
+                                ImmutableSet.of(
+                                        new ResourceLocation("moremcmeta", "textures/dummy.png"),
+                                        new ResourceLocation("textures/test_e.png")
+                                )
+                        ),
+                        new ByteArrayInputStream("{ \"animation\": {} }".getBytes())
+                )
+        );
+
+        assertEquals(4, views.size());
+        assertFalse(views.get(new ResourceLocation("textures/optifine/eyes.png")).hasKey("animation"));
+
+        MetadataView view1 = views.get(new ResourceLocation("textures/optifine/eyes.png"))
+                .subView("overlay").orElseThrow();
         MetadataView view2 = views.get(new ResourceLocation("moremcmeta", "textures/dummy.png"))
                 .subView("overlay").orElseThrow();
         MetadataView view3 = views.get(new ResourceLocation("textures/test.png"))

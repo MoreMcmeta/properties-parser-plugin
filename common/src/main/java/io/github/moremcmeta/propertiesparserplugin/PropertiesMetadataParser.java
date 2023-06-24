@@ -17,18 +17,27 @@
 
 package io.github.moremcmeta.propertiesparserplugin;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.mojang.datafixers.util.Pair;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.CombinedMetadataView;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.InvalidMetadataException;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.JsonMetadataView;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.ResourceRepository;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
+import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,7 +47,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -56,7 +64,7 @@ public final class PropertiesMetadataParser implements MetadataParser {
 
     @Override
     public Map<ResourceLocation, MetadataView> parse(ResourceLocation metadataLocation, InputStream metadataStream,
-                                                    ResourceRepository repository)
+                                                     ResourceRepository repository)
             throws InvalidMetadataException {
         Properties props = new Properties();
         try {
@@ -71,7 +79,7 @@ public final class PropertiesMetadataParser implements MetadataParser {
         putAll(metadata, props);
 
         if (metadataLocation.equals(EMISSIVE_CONFIG)) {
-            return readEmissiveFile(props, repository::list);
+            return readEmissiveFile(props, repository);
         }
 
         if (metadataLocation.getPath().startsWith(ANIMATION_PATH_START)) {
@@ -102,11 +110,10 @@ public final class PropertiesMetadataParser implements MetadataParser {
                 .map((view) -> view.subView(ANIMATION_SECTION).orElseThrow())
                 .filter((view) -> view.subView(PARTS_KEY).isPresent())
                 .map((view) -> view.subView(PARTS_KEY).orElseThrow())
-                .filter((view) -> view instanceof PropertiesMetadataView)
-                .map((view) -> (PropertiesMetadataView) view)
-                .flatMap((view) -> IntStream.range(0, view.size()).mapToObj(view::rawSubView))
+                .flatMap((view) -> IntStream.range(0, view.size()).mapToObj(view::subView))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
+                .map(PropertiesMetadataView.Value::new)
                 .toList();
 
         ImmutableMap<String, PropertiesMetadataView.Value> combinedAnimations = ImmutableMap.copyOf(
@@ -121,8 +128,13 @@ public final class PropertiesMetadataParser implements MetadataParser {
         ImmutableMap<String, PropertiesMetadataView.Value> animationSection;
         if (combinedAnimations.size() > 0) {
             animationSection = ImmutableMap.of(
-                    ANIMATION_SECTION, new PropertiesMetadataView.Value(ImmutableMap.of(
-                            PARTS_KEY, new PropertiesMetadataView.Value(combinedAnimations)
+                    ANIMATION_SECTION, new PropertiesMetadataView.Value(new PropertiesMetadataView(
+                            ImmutableMap.of(
+                                    PARTS_KEY,
+                                    new PropertiesMetadataView.Value(
+                                            new PropertiesMetadataView(combinedAnimations)
+                                    )
+                            )
                     ))
             );
         } else {
@@ -145,18 +157,17 @@ public final class PropertiesMetadataParser implements MetadataParser {
     /**
      * Reads metadata from an emissive textures file.
      * @param props                 all read properties
-     * @param resourceSearcher      searches for resources that exist in any currently-applied resource pack
+     * @param repository            resource repository to search in
      * @return all metadata from an emissive textures files
      */
-    private static Map<ResourceLocation, MetadataView> readEmissiveFile(
-            Properties props, Function<Predicate<String>, Set<? extends ResourceLocation>> resourceSearcher
-    ) throws InvalidMetadataException {
+    private static Map<ResourceLocation, MetadataView> readEmissiveFile(Properties props, ResourceRepository repository)
+            throws InvalidMetadataException {
         String emissiveSuffix = require(props, "suffix.emissive") + ".png";
 
-        Function<ResourceLocation, MetadataView> textureToView = (overlayLocation) -> new PropertiesMetadataView(
+        Function<ResourceLocation, MetadataView> overlayToView = (overlayLocation) -> new PropertiesMetadataView(
                 ImmutableMap.of(
                         OVERLAY_SECTION,
-                        new PropertiesMetadataView.Value(
+                        new PropertiesMetadataView.Value(new PropertiesMetadataView(
                                 ImmutableMap.of(
                                         "texture",
                                         new PropertiesMetadataView.Value(overlayLocation.toString()),
@@ -164,18 +175,78 @@ public final class PropertiesMetadataParser implements MetadataParser {
                                         new PropertiesMetadataView.Value("true")
                                 )
                         )
+                        )
                 )
         );
 
-        return resourceSearcher.apply((fileName) -> fileName.endsWith(emissiveSuffix))
+        return repository.list((fileName) -> fileName.endsWith(emissiveSuffix))
                 .stream()
                 .collect(Collectors.toMap(
-                        (overlayLocation) -> new ResourceLocation(
-                                overlayLocation.getNamespace(),
-                                overlayLocation.getPath().replace(emissiveSuffix, ".png")
-                        ),
-                        textureToView
+                        (overlayLocation) -> textureFromOverlay(overlayLocation, emissiveSuffix),
+                        (overlayLocation) -> addDefaultMetadata(
+                                textureFromOverlay(overlayLocation, emissiveSuffix),
+                                overlayToView.apply(overlayLocation),
+                                repository
+                        )
                 ));
+    }
+
+    /**
+     * Converts an emissive overlay location to the texture's location.
+     * @param overlayLocation       overlay location to convert
+     * @param emissiveSuffix        suffix of the overlay
+     * @return location of texture underneath the overlay
+     */
+    private static ResourceLocation textureFromOverlay(ResourceLocation overlayLocation, String emissiveSuffix) {
+        return new ResourceLocation(
+                overlayLocation.getNamespace(),
+                overlayLocation.getPath().replace(emissiveSuffix, ".png")
+        );
+    }
+
+    /**
+     * Adds metadata from Minecraft's default .mcmeta files if present.
+     * @param textureLocation       location of the texture whose metadata is being processed
+     * @param currentView           current metadata for the texture
+     * @param repository            resource repository to search in
+     * @return given metadata with default metadata added, if any
+     */
+    private static MetadataView addDefaultMetadata(ResourceLocation textureLocation, MetadataView currentView,
+                                                   ResourceRepository repository) {
+        ResourceLocation metadataLocation = new ResourceLocation(
+                textureLocation.getNamespace(),
+                textureLocation.getPath() + ".mcmeta"
+        );
+
+        // Add default metadata if it exists
+        Optional<ResourceRepository.Pack> packOptional = repository.highestPackWith(metadataLocation, textureLocation);
+        if (packOptional.isPresent()) {
+            ResourceRepository.Pack pack = packOptional.get();
+            InputStream metadataStream = pack.resource(metadataLocation).orElseThrow();
+
+            BufferedReader bufferedReader = null;
+
+            try {
+                bufferedReader = new BufferedReader(new InputStreamReader(metadataStream, StandardCharsets.UTF_8));
+                JsonObject metadataObject = GsonHelper.parse(bufferedReader);
+
+                /* Parsed "animation" metadata will be under the "animation" section directly, not "animation" and
+                   then the "parts" sub view. This means that the default animation will be ignored during
+                   combination if there are .properties animations. */
+                MetadataView defaultView = new JsonMetadataView(metadataObject, String::compareTo);
+                return new CombinedMetadataView(ImmutableList.of(currentView, defaultView));
+
+            } catch (JsonParseException parseError) {
+
+                // Ignore invalid default metadata
+                return currentView;
+
+            } finally {
+                IOUtils.closeQuietly(bufferedReader);
+            }
+        }
+
+        return currentView;
     }
 
     /**
@@ -183,7 +254,7 @@ public final class PropertiesMetadataParser implements MetadataParser {
      * @param metadata              key-to-property map pre-filled with all properties in the file
      * @param props                 all read properties
      * @param metadataLocation      location of the animation file
-     * @return all metadata from an animation files
+     * @return all metadata from an animation file
      */
     private static Map<ResourceLocation, MetadataView> readAnimationFile(
             Map<String, PropertiesMetadataView.Value> metadata, Properties props,
@@ -206,12 +277,18 @@ public final class PropertiesMetadataParser implements MetadataParser {
                 new PropertiesMetadataView(
                         ImmutableMap.of(
                                 "animation",
-                                new PropertiesMetadataView.Value(ImmutableMap.of(
-                                        "parts",
-                                        new PropertiesMetadataView.Value(ImmutableMap.of(
-                                                "0",
-                                                new PropertiesMetadataView.Value(ImmutableMap.copyOf(metadata))
-                                        ))
+                                new PropertiesMetadataView.Value(new PropertiesMetadataView(
+                                        ImmutableMap.of(
+                                                PARTS_KEY,
+                                                new PropertiesMetadataView.Value(new PropertiesMetadataView(
+                                                        ImmutableMap.of(
+                                                                "0",
+                                                                new PropertiesMetadataView.Value(new PropertiesMetadataView(
+                                                                        ImmutableMap.copyOf(metadata)
+                                                                ))
+                                                        )
+                                                ))
+                                        )
                                 ))
                         )
                 )
@@ -278,10 +355,15 @@ public final class PropertiesMetadataParser implements MetadataParser {
                     )
             );
 
-            builder.put(String.valueOf(index), new PropertiesMetadataView.Value(frame.build()));
+            builder.put(
+                    String.valueOf(index),
+                    new PropertiesMetadataView.Value(new PropertiesMetadataView(frame.build()))
+            );
         }
 
-        return Optional.of(new PropertiesMetadataView.Value(builder.build()));
+        return Optional.of(new PropertiesMetadataView.Value(
+                new PropertiesMetadataView(builder.build())
+        ));
     }
 
     /**
