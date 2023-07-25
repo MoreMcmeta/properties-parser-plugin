@@ -87,7 +87,7 @@ public final class PropertiesMetadataParser implements MetadataParser {
 
         throw new InvalidMetadataException(String.format("Support is not yet implemented for the OptiFine properties " +
                 "file %s. If you're looking to implement a plugin that uses this file, feel free to submit a PR!",
-                metadataLocation));
+                metadataLocation), true);
     }
 
     @Override
