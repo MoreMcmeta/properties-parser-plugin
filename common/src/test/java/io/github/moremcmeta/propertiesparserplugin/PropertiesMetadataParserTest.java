@@ -746,6 +746,223 @@ public final class PropertiesMetadataParserTest {
     }
 
     @Test
+    public void parse_ToPackPngUsesAllAnimationProperties_AllParsed() throws InvalidMetadataException {
+        Map<ResourceLocation, MetadataView> views = PARSER.parse(
+                new ResourceLocation("optifine/anim/creepereyes.properties"),
+                makePropertiesStream(
+                        "from=optifine/anim/eyes.png",
+                        "to=pack.png",
+                        "y=20",
+                        "h=30",
+                        "x=0",
+                        "w=10",
+                        "tile.0=0",
+                        "tile.4=2",
+                        "tile.3=1",
+                        "tile.1=3",
+                        "tile.2=2",
+                        "duration.0=5",
+                        "duration.2=15",
+                        "duration.1=10",
+                        "duration.4=20",
+                        "duration.3=5",
+                        "skip=5",
+                        "interpolate=true",
+                        "smoothAlpha=true"
+                ),
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/entity/creeper.png"),
+                                new ResourceLocation("optifine/anim/eyes.png"),
+                                new ResourceLocation("optifine/anim/creepereyes.properties")
+                        )
+                ))
+        );
+
+        MetadataView animationView = views.get(new ResourceLocation("root/pack.png"))
+                .subView("animation").orElseThrow()
+                .subView("parts").orElseThrow()
+                .subView(0).orElseThrow();
+
+        assertEquals(
+                ImmutableSet.of(new ResourceLocation("root/pack.png")),
+                views.keySet()
+        );
+        assertTrue(animationView.byteStreamValue("texture").isPresent());
+        assertEquals(0, (int) animationView.integerValue("x").orElseThrow());
+        assertEquals(20, (int) animationView.integerValue("y").orElseThrow());
+        assertEquals(10, (int) animationView.integerValue("width").orElseThrow());
+        assertEquals(30, (int) animationView.integerValue("height").orElseThrow());
+        assertEquals(5, (int) animationView.integerValue("skip").orElseThrow());
+        assertTrue(animationView.booleanValue("interpolate").orElseThrow());
+        assertTrue(animationView.booleanValue("smoothAlpha").orElseThrow());
+
+        MetadataView framesView = animationView.subView("frames").orElseThrow();
+        assertEquals(5, framesView.size());
+
+        assertEquals(
+                0,
+                (int) framesView.subView(0).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+        assertEquals(
+                3,
+                (int) framesView.subView(1).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+        assertEquals(
+                2,
+                (int) framesView.subView(2).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+        assertEquals(
+                1,
+                (int) framesView.subView(3).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+        assertEquals(
+                2,
+                (int) framesView.subView(4).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+
+        assertEquals(
+                5,
+                (int) framesView.subView(0).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+        assertEquals(
+                10,
+                (int) framesView.subView(1).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+        assertEquals(
+                15,
+                (int) framesView.subView(2).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+        assertEquals(
+                5,
+                (int) framesView.subView(3).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+        assertEquals(
+                20,
+                (int) framesView.subView(4).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+    }
+
+    @Test
+    public void parse_FromPackPngUsesAllAnimationProperties_AllParsed() throws InvalidMetadataException {
+        Map<ResourceLocation, MetadataView> views = PARSER.parse(
+                new ResourceLocation("optifine/anim/creepereyes.properties"),
+                makePropertiesStream(
+                        "from=pack.png",
+                        "to=textures/entity/creeper.png",
+                        "y=20",
+                        "h=30",
+                        "x=0",
+                        "w=10",
+                        "tile.0=0",
+                        "tile.4=2",
+                        "tile.3=1",
+                        "tile.1=3",
+                        "tile.2=2",
+                        "duration.0=5",
+                        "duration.2=15",
+                        "duration.1=10",
+                        "duration.4=20",
+                        "duration.3=5",
+                        "skip=5",
+                        "interpolate=true",
+                        "smoothAlpha=true"
+                ),
+                new MockResourceRepository(ImmutableList.of(
+                        ImmutableSet.of(
+                                new ResourceLocation("textures/entity/creeper.png"),
+                                new ResourceLocation("optifine/anim/eyes.png"),
+                                new ResourceLocation("optifine/anim/creepereyes.properties"),
+                                new ResourceLocation("root/pack.png")
+                        )
+                ))
+        );
+
+        MetadataView animationView = views.get(new ResourceLocation("textures/entity/creeper.png"))
+                .subView("animation").orElseThrow()
+                .subView("parts").orElseThrow()
+                .subView(0).orElseThrow();
+
+        assertEquals(
+                ImmutableSet.of(new ResourceLocation("textures/entity/creeper.png")),
+                views.keySet()
+        );
+        assertTrue(animationView.byteStreamValue("texture").isPresent());
+        assertEquals(0, (int) animationView.integerValue("x").orElseThrow());
+        assertEquals(20, (int) animationView.integerValue("y").orElseThrow());
+        assertEquals(10, (int) animationView.integerValue("width").orElseThrow());
+        assertEquals(30, (int) animationView.integerValue("height").orElseThrow());
+        assertEquals(5, (int) animationView.integerValue("skip").orElseThrow());
+        assertTrue(animationView.booleanValue("interpolate").orElseThrow());
+        assertTrue(animationView.booleanValue("smoothAlpha").orElseThrow());
+
+        MetadataView framesView = animationView.subView("frames").orElseThrow();
+        assertEquals(5, framesView.size());
+
+        assertEquals(
+                0,
+                (int) framesView.subView(0).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+        assertEquals(
+                3,
+                (int) framesView.subView(1).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+        assertEquals(
+                2,
+                (int) framesView.subView(2).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+        assertEquals(
+                1,
+                (int) framesView.subView(3).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+        assertEquals(
+                2,
+                (int) framesView.subView(4).orElseThrow()
+                        .integerValue("index").orElseThrow()
+        );
+
+        assertEquals(
+                5,
+                (int) framesView.subView(0).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+        assertEquals(
+                10,
+                (int) framesView.subView(1).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+        assertEquals(
+                15,
+                (int) framesView.subView(2).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+        assertEquals(
+                5,
+                (int) framesView.subView(3).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+        assertEquals(
+                20,
+                (int) framesView.subView(4).orElseThrow()
+                        .integerValue("time").orElseThrow()
+        );
+    }
+
+    @Test
     public void parse_ExtraProperties_RenamedPropertiesNotOverridden() throws InvalidMetadataException {
         Map<ResourceLocation, MetadataView> views = PARSER.parse(
                 new ResourceLocation("optifine/anim/creepereyes.properties"),

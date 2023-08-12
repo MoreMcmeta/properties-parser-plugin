@@ -18,6 +18,7 @@
 package io.github.moremcmeta.propertiesparserplugin;
 
 import io.github.moremcmeta.moremcmeta.api.client.metadata.ResourceRepository;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.RootResourceName;
 import net.minecraft.resources.ResourceLocation;
 
 import java.io.ByteArrayInputStream;
@@ -86,12 +87,20 @@ public final class MockResourceRepository implements ResourceRepository {
     }
 
     private Pack makeMockPack(Set<ResourceLocation> pack) {
-        return (location) -> {
-            if (pack.contains(location) && !BAD_PACKS) {
-                return Optional.of(DUMMY_STREAM);
+        return new Pack() {
+            @Override
+            public Optional<InputStream> resource(ResourceLocation location) {
+                if (pack.contains(location) && !BAD_PACKS) {
+                    return Optional.of(DUMMY_STREAM);
+                }
+
+                return Optional.empty();
             }
 
-            return Optional.empty();
+            @Override
+            public ResourceLocation locateRootResource(RootResourceName rootResourceName) {
+                return new ResourceLocation("root/" + rootResourceName.toString());
+            }
         };
     }
 }
