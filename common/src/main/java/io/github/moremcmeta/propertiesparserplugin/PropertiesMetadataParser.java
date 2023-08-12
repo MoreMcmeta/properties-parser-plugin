@@ -28,6 +28,7 @@ import io.github.moremcmeta.moremcmeta.api.client.metadata.JsonMetadataView;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataParser;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.ResourceRepository;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.RootResourceName;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -60,6 +61,7 @@ public final class PropertiesMetadataParser implements MetadataParser {
     private static final String ANIMATION_SECTION = "animation";
     private static final String PARTS_KEY = "parts";
     private static final String OVERLAY_SECTION = "overlay";
+    private static final RootResourceName PACK_PNG = new RootResourceName("pack.png");
 
     @Override
     public Map<ResourceLocation, MetadataView> parse(ResourceLocation metadataLocation, InputStream metadataStream,
@@ -126,7 +128,7 @@ public final class PropertiesMetadataParser implements MetadataParser {
         );
 
         ImmutableMap<String, PropertiesMetadataView.Value> animationSection;
-        if (combinedAnimations.size() > 0) {
+        if (!combinedAnimations.isEmpty()) {
             animationSection = ImmutableMap.of(
                     ANIMATION_SECTION, new PropertiesMetadataView.Value(new PropertiesMetadataView(
                             ImmutableMap.of(
@@ -258,10 +260,11 @@ public final class PropertiesMetadataParser implements MetadataParser {
     private static Map<ResourceLocation, MetadataView> readAnimationFile(
             Map<String, PropertiesMetadataView.Value> metadata, Properties props,
             ResourceLocation metadataLocation, ResourceRepository repository) throws InvalidMetadataException {
-        ResourceLocation to = convertToLocation(require(props, "to"), metadataLocation);
+        ResourceRepository.Pack metadataPack = repository.highestPackWith(metadataLocation).get();
+        ResourceLocation to = convertToLocation(metadataPack, require(props, "to"), metadataLocation);
 
         if (props.containsKey("from")) {
-            ResourceLocation from = convertToLocation(props.getProperty("from"), metadataLocation);
+            ResourceLocation from = convertToLocation(metadataPack, props.getProperty("from"), metadataLocation);
             InputStream fromStream = findTextureStream(from, repository);
             metadata.put("texture", new PropertiesMetadataView.Value(fromStream));
         }
@@ -459,8 +462,13 @@ public final class PropertiesMetadataParser implements MetadataParser {
      * @return path as a {@link ResourceLocation}
      * @throws InvalidMetadataException if the path cannot be converted to a valid {@link ResourceLocation}
      */
-    private static ResourceLocation convertToLocation(String path, ResourceLocation metadataLocation)
+    private static ResourceLocation convertToLocation(ResourceRepository.Pack pack, String path,
+                                                      ResourceLocation metadataLocation)
             throws InvalidMetadataException {
+        if (path.equals(PACK_PNG.toString())) {
+            return pack.locateRootResource(PACK_PNG);
+        }
+
         try {
             return new ResourceLocation(expandPath(path, metadataLocation));
         } catch (ResourceLocationException err) {
