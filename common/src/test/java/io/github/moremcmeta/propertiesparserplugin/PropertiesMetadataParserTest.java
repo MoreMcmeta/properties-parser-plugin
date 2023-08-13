@@ -751,7 +751,7 @@ public final class PropertiesMetadataParserTest {
 
     @Test
     public void parse_ToPackPngUsesAllAnimationProperties_AllParsed() {
-        Map<? extends RootResourceName, ? extends MetadataView> views = PARSER.parse(
+        Map<? extends RootResourceName, ? extends Map<? extends RootResourceName, ? extends MetadataView>> views = PARSER.parse(
                 new ResourceRepository.Pack() {
                     @Override
                     public Optional<InputStream> resource(ResourceLocation location) {
@@ -789,9 +789,10 @@ public final class PropertiesMetadataParserTest {
                         return new ResourceLocation("root/" + rootResourceName);
                     }
                 }
-        ).get(new RootResourceName("pack.png"));
+        );
 
         MetadataView animationView = views.get(new RootResourceName("pack_anim0.properties"))
+                .get(new RootResourceName("pack.png"))
                 .subView("animation").orElseThrow()
                 .subView("parts").orElseThrow()
                 .subView(0).orElseThrow();
@@ -867,7 +868,7 @@ public final class PropertiesMetadataParserTest {
 
     @Test
     public void parse_ToPackPngUsesMultipleAnimations_AllParsed() {
-        Map<? extends RootResourceName, ? extends MetadataView> views = PARSER.parse(
+        Map<? extends RootResourceName, ? extends Map<? extends RootResourceName, ? extends MetadataView>> views = PARSER.parse(
                 new ResourceRepository.Pack() {
                     @Override
                     public Optional<InputStream> resource(ResourceLocation location) {
@@ -906,9 +907,10 @@ public final class PropertiesMetadataParserTest {
                         return new ResourceLocation("root/" + rootResourceName);
                     }
                 }
-        ).get(new RootResourceName("pack.png"));
+        );
 
         MetadataView animationView1 = views.get(new RootResourceName("pack_anim0.properties"))
+                .get(new RootResourceName("pack.png"))
                 .subView("animation").orElseThrow()
                 .subView("parts").orElseThrow()
                 .subView(0).orElseThrow();
@@ -924,6 +926,7 @@ public final class PropertiesMetadataParserTest {
         assertEquals(30, (int) animationView1.integerValue("height").orElseThrow());
 
         MetadataView animationView2 = views.get(new RootResourceName("pack_anim1.properties"))
+                .get(new RootResourceName("pack.png"))
                 .subView("animation").orElseThrow()
                 .subView("parts").orElseThrow()
                 .subView(0).orElseThrow();
@@ -937,7 +940,7 @@ public final class PropertiesMetadataParserTest {
 
     @Test
     public void parse_ToPackPngAnimationMissingTexture_AllParsed() {
-        Map<? extends RootResourceName, ? extends MetadataView> views = PARSER.parse(
+        Map<? extends RootResourceName, ? extends Map<? extends RootResourceName, ? extends MetadataView>> views = PARSER.parse(
                 new ResourceRepository.Pack() {
                     @Override
                     public Optional<InputStream> resource(ResourceLocation location) {
@@ -975,9 +978,10 @@ public final class PropertiesMetadataParserTest {
                         return new ResourceLocation("root/" + rootResourceName);
                     }
                 }
-        ).get(new RootResourceName("pack.png"));
+        );
 
         MetadataView animationView1 = views.get(new RootResourceName("pack_anim0.properties"))
+                .get(new RootResourceName("pack.png"))
                 .subView("animation").orElseThrow()
                 .subView("parts").orElseThrow()
                 .subView(0).orElseThrow();
@@ -993,6 +997,7 @@ public final class PropertiesMetadataParserTest {
         assertEquals(30, (int) animationView1.integerValue("height").orElseThrow());
 
         MetadataView animationView2 = views.get(new RootResourceName("pack_anim1.properties"))
+                .get(new RootResourceName("pack.png"))
                 .subView("animation").orElseThrow()
                 .subView("parts").orElseThrow()
                 .subView(0).orElseThrow();
@@ -1009,7 +1014,7 @@ public final class PropertiesMetadataParserTest {
         InputStream badStream = InputStream.nullInputStream();
         badStream.close();
 
-        Map<? extends RootResourceName, ? extends MetadataView> views = PARSER.parse(
+        Map<? extends RootResourceName, ? extends Map<? extends RootResourceName, ? extends MetadataView>> views = PARSER.parse(
                 new ResourceRepository.Pack() {
                     @Override
                     public Optional<InputStream> resource(ResourceLocation location) {
@@ -1048,9 +1053,10 @@ public final class PropertiesMetadataParserTest {
                         return new ResourceLocation("root/" + rootResourceName);
                     }
                 }
-        ).get(new RootResourceName("pack.png"));
+        );
 
         MetadataView animationView1 = views.get(new RootResourceName("pack_anim0.properties"))
+                .get(new RootResourceName("pack.png"))
                 .subView("animation").orElseThrow()
                 .subView("parts").orElseThrow()
                 .subView(0).orElseThrow();
@@ -1066,6 +1072,7 @@ public final class PropertiesMetadataParserTest {
         assertEquals(30, (int) animationView1.integerValue("height").orElseThrow());
 
         MetadataView animationView2 = views.get(new RootResourceName("pack_anim1.properties"))
+                .get(new RootResourceName("pack.png"))
                 .subView("animation").orElseThrow()
                 .subView("parts").orElseThrow()
                 .subView(0).orElseThrow();
