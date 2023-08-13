@@ -22,8 +22,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.InvalidMetadataException;
 import io.github.moremcmeta.moremcmeta.api.client.metadata.MetadataView;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.ResourceRepository;
+import io.github.moremcmeta.moremcmeta.api.client.metadata.RootResourceName;
 import net.minecraft.resources.ResourceLocation;
-import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -31,10 +32,14 @@ import org.junit.rules.ExpectedException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.PipedInputStream;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the {@link PropertiesMetadataParser}.
@@ -254,7 +259,7 @@ public final class PropertiesMetadataParserTest {
 
     @Test
     public void parse_BadPropertiesFile_InvalidMetadataException() throws InvalidMetadataException, IOException {
-        InputStream badStream = IOUtils.toInputStream("dummy", StandardCharsets.UTF_8);
+        InputStream badStream = new PipedInputStream();
         badStream.close();
 
         expectedException.expect(InvalidMetadataException.class);
@@ -749,46 +754,54 @@ public final class PropertiesMetadataParserTest {
     }
 
     @Test
-    public void parse_ToPackPngUsesAllAnimationProperties_AllParsed() throws InvalidMetadataException {
-        Map<ResourceLocation, MetadataView> views = PARSER.parse(
-                new ResourceLocation("optifine/anim/creepereyes.properties"),
-                makePropertiesStream(
-                        "from=optifine/anim/eyes.png",
-                        "to=pack.png",
-                        "y=20",
-                        "h=30",
-                        "x=0",
-                        "w=10",
-                        "tile.0=0",
-                        "tile.4=2",
-                        "tile.3=1",
-                        "tile.1=3",
-                        "tile.2=2",
-                        "duration.0=5",
-                        "duration.2=15",
-                        "duration.1=10",
-                        "duration.4=20",
-                        "duration.3=5",
-                        "skip=5",
-                        "interpolate=true",
-                        "smoothAlpha=true"
-                ),
-                new MockResourceRepository(ImmutableList.of(
-                        ImmutableSet.of(
-                                new ResourceLocation("textures/entity/creeper.png"),
-                                new ResourceLocation("optifine/anim/eyes.png"),
-                                new ResourceLocation("optifine/anim/creepereyes.properties")
-                        )
-                ))
-        );
+    public void parse_ToPackPngUsesAllAnimationProperties_AllParsed() {
+        Map<? extends RootResourceName, ? extends MetadataView> views = PARSER.parse(
+                new ResourceRepository.Pack() {
+                    @Override
+                    public Optional<InputStream> resource(ResourceLocation location) {
+                        if (location.getPath().equals("root/pack_anim0.properties")) {
+                            return Optional.of(
+                                    makePropertiesStream(
+                                            "y=20",
+                                            "h=30",
+                                            "x=0",
+                                            "w=10",
+                                            "tile.0=0",
+                                            "tile.4=2",
+                                            "tile.3=1",
+                                            "tile.1=3",
+                                            "tile.2=2",
+                                            "duration.0=5",
+                                            "duration.2=15",
+                                            "duration.1=10",
+                                            "duration.4=20",
+                                            "duration.3=5",
+                                            "skip=5",
+                                            "interpolate=true",
+                                            "smoothAlpha=true"
+                                    )
+                            );
+                        } else if (location.getPath().equals("root/pack_anim0.png")) {
+                            return Optional.of(new ByteArrayInputStream(location.toString().getBytes()));
+                        }
 
-        MetadataView animationView = views.get(new ResourceLocation("root/pack.png"))
+                        return Optional.empty();
+                    }
+
+                    @Override
+                    public ResourceLocation locateRootResource(RootResourceName rootResourceName) {
+                        return new ResourceLocation("root/" + rootResourceName);
+                    }
+                }
+        ).get(new RootResourceName("pack.png"));
+
+        MetadataView animationView = views.get(new RootResourceName("pack_anim0.properties"))
                 .subView("animation").get()
                 .subView("parts").get()
                 .subView(0).get();
 
         assertEquals(
-                ImmutableSet.of(new ResourceLocation("root/pack.png")),
+                ImmutableSet.of(new RootResourceName("pack_anim0.properties")),
                 views.keySet()
         );
         assertTrue(animationView.byteStreamValue("texture").isPresent());
@@ -857,112 +870,215 @@ public final class PropertiesMetadataParserTest {
     }
 
     @Test
-    public void parse_FromPackPngUsesAllAnimationProperties_AllParsed() throws InvalidMetadataException {
-        Map<ResourceLocation, MetadataView> views = PARSER.parse(
-                new ResourceLocation("optifine/anim/creepereyes.properties"),
-                makePropertiesStream(
-                        "from=pack.png",
-                        "to=textures/entity/creeper.png",
-                        "y=20",
-                        "h=30",
-                        "x=0",
-                        "w=10",
-                        "tile.0=0",
-                        "tile.4=2",
-                        "tile.3=1",
-                        "tile.1=3",
-                        "tile.2=2",
-                        "duration.0=5",
-                        "duration.2=15",
-                        "duration.1=10",
-                        "duration.4=20",
-                        "duration.3=5",
-                        "skip=5",
-                        "interpolate=true",
-                        "smoothAlpha=true"
-                ),
-                new MockResourceRepository(ImmutableList.of(
-                        ImmutableSet.of(
-                                new ResourceLocation("textures/entity/creeper.png"),
-                                new ResourceLocation("optifine/anim/eyes.png"),
-                                new ResourceLocation("optifine/anim/creepereyes.properties"),
-                                new ResourceLocation("root/pack.png")
-                        )
-                ))
-        );
+    public void parse_ToPackPngUsesMultipleAnimations_AllParsed() {
+        Map<? extends RootResourceName, ? extends MetadataView> views = PARSER.parse(
+                new ResourceRepository.Pack() {
+                    @Override
+                    public Optional<InputStream> resource(ResourceLocation location) {
+                        Set<String> validTextures = ImmutableSet.of(
+                                "root/pack_anim0.png",
+                                "root/pack_anim1.png"
+                        );
 
-        MetadataView animationView = views.get(new ResourceLocation("textures/entity/creeper.png"))
+                        if (location.getPath().equals("root/pack_anim0.properties")) {
+                            return Optional.of(
+                                    makePropertiesStream(
+                                            "y=20",
+                                            "h=30",
+                                            "x=0",
+                                            "w=10"
+                                    )
+                            );
+                        } else if (location.getPath().equals("root/pack_anim1.properties")) {
+                            return Optional.of(
+                                    makePropertiesStream(
+                                            "y=10",
+                                            "h=15",
+                                            "x=0",
+                                            "w=10"
+                                    )
+                            );
+                        } else if (validTextures.contains(location.getPath())) {
+                            return Optional.of(new ByteArrayInputStream(location.toString().getBytes()));
+                        }
+
+                        return Optional.empty();
+                    }
+
+                    @Override
+                    public ResourceLocation locateRootResource(RootResourceName rootResourceName) {
+                        return new ResourceLocation("root/" + rootResourceName);
+                    }
+                }
+        ).get(new RootResourceName("pack.png"));
+
+        MetadataView animationView1 = views.get(new RootResourceName("pack_anim0.properties"))
                 .subView("animation").get()
                 .subView("parts").get()
                 .subView(0).get();
 
         assertEquals(
-                ImmutableSet.of(new ResourceLocation("textures/entity/creeper.png")),
+                ImmutableSet.of(new RootResourceName("pack_anim0.properties"), new RootResourceName("pack_anim1.properties")),
                 views.keySet()
         );
-        assertTrue(animationView.byteStreamValue("texture").isPresent());
-        assertEquals(0, (int) animationView.integerValue("x").get());
-        assertEquals(20, (int) animationView.integerValue("y").get());
-        assertEquals(10, (int) animationView.integerValue("width").get());
-        assertEquals(30, (int) animationView.integerValue("height").get());
-        assertEquals(5, (int) animationView.integerValue("skip").get());
-        assertTrue(animationView.booleanValue("interpolate").get());
-        assertTrue(animationView.booleanValue("smoothAlpha").get());
+        assertTrue(animationView1.byteStreamValue("texture").isPresent());
+        assertEquals(0, (int) animationView1.integerValue("x").get());
+        assertEquals(20, (int) animationView1.integerValue("y").get());
+        assertEquals(10, (int) animationView1.integerValue("width").get());
+        assertEquals(30, (int) animationView1.integerValue("height").get());
 
-        MetadataView framesView = animationView.subView("frames").get();
-        assertEquals(5, framesView.size());
+        MetadataView animationView2 = views.get(new RootResourceName("pack_anim1.properties"))
+                .subView("animation").get()
+                .subView("parts").get()
+                .subView(0).get();
+
+        assertTrue(animationView2.byteStreamValue("texture").isPresent());
+        assertEquals(0, (int) animationView2.integerValue("x").get());
+        assertEquals(10, (int) animationView2.integerValue("y").get());
+        assertEquals(10, (int) animationView2.integerValue("width").get());
+        assertEquals(15, (int) animationView2.integerValue("height").get());
+    }
+
+    @Test
+    public void parse_ToPackPngAnimationMissingTexture_AllParsed() {
+        Map<? extends RootResourceName, ? extends MetadataView> views = PARSER.parse(
+                new ResourceRepository.Pack() {
+                    @Override
+                    public Optional<InputStream> resource(ResourceLocation location) {
+                        Set<String> validTextures = ImmutableSet.of(
+                                "root/pack_anim1.png"
+                        );
+
+                        if (location.getPath().equals("root/pack_anim0.properties")) {
+                            return Optional.of(
+                                    makePropertiesStream(
+                                            "y=20",
+                                            "h=30",
+                                            "x=0",
+                                            "w=10"
+                                    )
+                            );
+                        } else if (location.getPath().equals("root/pack_anim1.properties")) {
+                            return Optional.of(
+                                    makePropertiesStream(
+                                            "y=10",
+                                            "h=15",
+                                            "x=0",
+                                            "w=10"
+                                    )
+                            );
+                        } else if (validTextures.contains(location.getPath())) {
+                            return Optional.of(new ByteArrayInputStream(location.toString().getBytes()));
+                        }
+
+                        return Optional.empty();
+                    }
+
+                    @Override
+                    public ResourceLocation locateRootResource(RootResourceName rootResourceName) {
+                        return new ResourceLocation("root/" + rootResourceName);
+                    }
+                }
+        ).get(new RootResourceName("pack.png"));
+
+        MetadataView animationView1 = views.get(new RootResourceName("pack_anim0.properties"))
+                .subView("animation").get()
+                .subView("parts").get()
+                .subView(0).get();
 
         assertEquals(
-                0,
-                (int) framesView.subView(0).get()
-                        .integerValue("index").get()
+                ImmutableSet.of(new RootResourceName("pack_anim0.properties"), new RootResourceName("pack_anim1.properties")),
+                views.keySet()
         );
-        assertEquals(
-                3,
-                (int) framesView.subView(1).get()
-                        .integerValue("index").get()
-        );
-        assertEquals(
-                2,
-                (int) framesView.subView(2).get()
-                        .integerValue("index").get()
-        );
-        assertEquals(
-                1,
-                (int) framesView.subView(3).get()
-                        .integerValue("index").get()
-        );
-        assertEquals(
-                2,
-                (int) framesView.subView(4).get()
-                        .integerValue("index").get()
-        );
+        assertFalse(animationView1.byteStreamValue("texture").isPresent());
+        assertEquals(0, (int) animationView1.integerValue("x").get());
+        assertEquals(20, (int) animationView1.integerValue("y").get());
+        assertEquals(10, (int) animationView1.integerValue("width").get());
+        assertEquals(30, (int) animationView1.integerValue("height").get());
+
+        MetadataView animationView2 = views.get(new RootResourceName("pack_anim1.properties"))
+                .subView("animation").get()
+                .subView("parts").get()
+                .subView(0).get();
+
+        assertTrue(animationView2.byteStreamValue("texture").isPresent());
+        assertEquals(0, (int) animationView2.integerValue("x").get());
+        assertEquals(10, (int) animationView2.integerValue("y").get());
+        assertEquals(10, (int) animationView2.integerValue("width").get());
+        assertEquals(15, (int) animationView2.integerValue("height").get());
+    }
+
+    @Test
+    public void parse_ToPackPngBadAnimationFile_StopsAtBadFile() throws IOException {
+        InputStream badStream = new PipedInputStream();
+        badStream.close();
+
+        Map<? extends RootResourceName, ? extends MetadataView> views = PARSER.parse(
+                new ResourceRepository.Pack() {
+                    @Override
+                    public Optional<InputStream> resource(ResourceLocation location) {
+                        Set<String> validMetadata = ImmutableSet.of(
+                                "root/pack_anim0.properties",
+                                "root/pack_anim1.properties",
+                                "root/pack_anim3.properties"
+                        );
+                        Set<String> validTextures = ImmutableSet.of(
+                                "root/pack_anim0.png",
+                                "root/pack_anim1.png",
+                                "root/pack_anim2.png",
+                                "root/pack_anim3.png"
+                        );
+
+                        if (validMetadata.contains(location.getPath())) {
+                            return Optional.of(
+                                    makePropertiesStream(
+                                            "y=20",
+                                            "h=30",
+                                            "x=0",
+                                            "w=10"
+                                    )
+                            );
+                        } else if (validTextures.contains(location.getPath())) {
+                            return Optional.of(new ByteArrayInputStream(location.toString().getBytes()));
+                        } else if (location.getPath().equals("root/pack_anim2.properties")) {
+                            return Optional.of(badStream);
+                        }
+
+                        return Optional.empty();
+                    }
+
+                    @Override
+                    public ResourceLocation locateRootResource(RootResourceName rootResourceName) {
+                        return new ResourceLocation("root/" + rootResourceName);
+                    }
+                }
+        ).get(new RootResourceName("pack.png"));
+
+        MetadataView animationView1 = views.get(new RootResourceName("pack_anim0.properties"))
+                .subView("animation").get()
+                .subView("parts").get()
+                .subView(0).get();
 
         assertEquals(
-                5,
-                (int) framesView.subView(0).get()
-                        .integerValue("time").get()
+                ImmutableSet.of(new RootResourceName("pack_anim0.properties"), new RootResourceName("pack_anim1.properties")),
+                views.keySet()
         );
-        assertEquals(
-                10,
-                (int) framesView.subView(1).get()
-                        .integerValue("time").get()
-        );
-        assertEquals(
-                15,
-                (int) framesView.subView(2).get()
-                        .integerValue("time").get()
-        );
-        assertEquals(
-                5,
-                (int) framesView.subView(3).get()
-                        .integerValue("time").get()
-        );
-        assertEquals(
-                20,
-                (int) framesView.subView(4).get()
-                        .integerValue("time").get()
-        );
+        assertTrue(animationView1.byteStreamValue("texture").isPresent());
+        assertEquals(0, (int) animationView1.integerValue("x").get());
+        assertEquals(20, (int) animationView1.integerValue("y").get());
+        assertEquals(10, (int) animationView1.integerValue("width").get());
+        assertEquals(30, (int) animationView1.integerValue("height").get());
+
+        MetadataView animationView2 = views.get(new RootResourceName("pack_anim1.properties"))
+                .subView("animation").get()
+                .subView("parts").get()
+                .subView(0).get();
+
+        assertTrue(animationView2.byteStreamValue("texture").isPresent());
+        assertEquals(0, (int) animationView2.integerValue("x").get());
+        assertEquals(20, (int) animationView2.integerValue("y").get());
+        assertEquals(10, (int) animationView2.integerValue("width").get());
+        assertEquals(30, (int) animationView2.integerValue("height").get());
     }
 
     @Test
