@@ -33,6 +33,7 @@ import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -62,35 +63,66 @@ public final class PropertiesMetadataParser implements MetadataParser {
     private static final String ANIMATION_SECTION = "animation";
     private static final String PARTS_KEY = "parts";
     private static final String OVERLAY_SECTION = "overlay";
-    private static final RootResourceName PACK_PNG = new RootResourceName("pack.png");
 
     @Override
     public Map<ResourceLocation, MetadataView> parse(ResourceLocation metadataLocation, InputStream metadataStream,
                                                      ResourceRepository repository)
             throws InvalidMetadataException {
-        Properties props = new Properties();
-        try {
-            props.load(metadataStream);
-        } catch (IOException err) {
-            throw new InvalidMetadataException(
-                    String.format("Unable to load properties file %s: %s", metadataLocation, err.getMessage())
-            );
-        }
-
-        Map<String, PropertiesMetadataView.Value> metadata = new HashMap<>();
-        putAll(metadata, props);
+        Pair<Properties, Map<String, PropertiesMetadataView.Value>> initRead = readProperties(metadataStream);
+        Properties props = initRead.getFirst();
+        Map<String, PropertiesMetadataView.Value> metadata = initRead.getSecond();
 
         if (metadataLocation.equals(EMISSIVE_CONFIG)) {
             return readEmissiveFile(props, repository);
         }
 
         if (metadataLocation.getPath().startsWith(ANIMATION_PATH_START)) {
-            return readAnimationFile(metadata, props, metadataLocation, repository);
+            return readNonRootAnimationFile(metadata, props, metadataLocation, repository);
         }
 
         throw new InvalidMetadataException(String.format("Support is not yet implemented for the OptiFine properties " +
                 "file %s. If you're looking to implement a plugin that uses this file, feel free to submit a PR!",
                 metadataLocation), true);
+    }
+
+    @Override
+    public Map<? extends RootResourceName, ? extends Map<? extends RootResourceName, ? extends MetadataView>> parse(
+            ResourceRepository.Pack pack) {
+        Map<RootResourceName, MetadataView> anims = new HashMap<>();
+        int index = 0;
+
+        while (true) {
+            RootResourceName imageName = new RootResourceName(String.format("pack_anim%s.png", index));
+            RootResourceName animName = new RootResourceName(String.format("pack_anim%s.properties", index));
+            ResourceLocation animLocation = pack.locateRootResource(animName);
+            Optional<InputStream> animStream = pack.resource(animLocation);
+
+            if (animStream.isEmpty()) {
+                break;
+            }
+
+            Pair<Properties, Map<String, PropertiesMetadataView.Value>> initRead;
+            try {
+                initRead = readProperties(animStream.get());
+            } catch (InvalidMetadataException err) {
+                LogManager.getLogger().error("Bad root animation file {}: {}", animName, err);
+                break;
+            }
+
+            Properties props = initRead.getFirst();
+            Map<String, PropertiesMetadataView.Value> metadata = initRead.getSecond();
+
+            ResourceLocation imageLocation = pack.locateRootResource(imageName);
+            pack.resource(imageLocation).ifPresent((imageStream) -> metadata.put(
+                    "texture",
+                    new PropertiesMetadataView.Value(imageStream))
+            );
+
+            anims.put(animName, readAnimationFile(metadata, props));
+            index++;
+        }
+
+        return ImmutableMap.of(new RootResourceName("pack.png"), anims);
     }
 
     @Override
@@ -154,6 +186,29 @@ public final class PropertiesMetadataParser implements MetadataParser {
         allViews.add(0, combinedAnimationView);
 
         return new CombinedMetadataView(allViews);
+    }
+
+    /**
+     * Reads all properties and adds them directly to the metadata.
+     * @param metadataStream        metadata stream to read properties from
+     * @return read properties and initial metadata
+     * @throws InvalidMetadataException if the properties could not be read from the stream
+     */
+    private static Pair<Properties, Map<String, PropertiesMetadataView.Value>> readProperties(InputStream metadataStream)
+            throws InvalidMetadataException {
+        Properties props = new Properties();
+        try {
+            props.load(metadataStream);
+        } catch (IOException err) {
+            throw new InvalidMetadataException(
+                    String.format("Unable to load properties file: %s", err.getMessage())
+            );
+        }
+
+        Map<String, PropertiesMetadataView.Value> metadata = new HashMap<>();
+        putAll(metadata, props);
+
+        return Pair.of(props, metadata);
     }
 
     /**
@@ -252,48 +307,57 @@ public final class PropertiesMetadataParser implements MetadataParser {
     }
 
     /**
-     * Reads metadata from an animation file.
+     * Reads metadata from an animation file that is not at the root of a resource pack.
      * @param metadata              key-to-property map pre-filled with all properties in the file
      * @param props                 all read properties
      * @param metadataLocation      location of the animation file
-     * @return all metadata from an animation file
+     * @return all metadata from the animation file
      */
-    private static Map<ResourceLocation, MetadataView> readAnimationFile(
+    private static Map<ResourceLocation, MetadataView> readNonRootAnimationFile(
             Map<String, PropertiesMetadataView.Value> metadata, Properties props,
             ResourceLocation metadataLocation, ResourceRepository repository) throws InvalidMetadataException {
-        ResourceRepository.Pack metadataPack = repository.highestPackWith(metadataLocation).orElseThrow();
-        ResourceLocation to = convertToLocation(metadataPack, require(props, "to"), metadataLocation);
+        ResourceLocation to = convertToLocation(require(props, "to"), metadataLocation);
 
         if (props.containsKey("from")) {
-            ResourceLocation from = convertToLocation(metadataPack, props.getProperty("from"), metadataLocation);
+            ResourceLocation from = convertToLocation(props.getProperty("from"), metadataLocation);
             InputStream fromStream = findTextureStream(from, repository);
             metadata.put("texture", new PropertiesMetadataView.Value(fromStream));
         }
 
+        return ImmutableMap.of(
+                to,
+                readAnimationFile(metadata, props)
+        );
+    }
+
+    /**
+     * Reads metadata common to both root and non-root animations from a file.
+     * @param metadata              key-to-property map pre-filled with all properties in the file
+     * @param props                 all read properties
+     * @return all metadata from the animation file
+     */
+    private static MetadataView readAnimationFile(Map<String, PropertiesMetadataView.Value> metadata, Properties props) {
         putIfValPresent(metadata, props, "w", "width", Function.identity());
         putIfValPresent(metadata, props, "h", "height", Function.identity());
         putIfValPresent(metadata, props, "duration", "frameTime", Function.identity());
         buildFrameList(props).ifPresent((value) -> metadata.put("frames", value));
 
-        return ImmutableMap.of(
-                to,
-                new PropertiesMetadataView(
-                        ImmutableMap.of(
-                                "animation",
-                                new PropertiesMetadataView.Value(new PropertiesMetadataView(
-                                        ImmutableMap.of(
-                                                PARTS_KEY,
-                                                new PropertiesMetadataView.Value(new PropertiesMetadataView(
-                                                        ImmutableMap.of(
-                                                                "0",
-                                                                new PropertiesMetadataView.Value(new PropertiesMetadataView(
-                                                                        ImmutableMap.copyOf(metadata)
-                                                                ))
-                                                        )
-                                                ))
-                                        )
-                                ))
-                        )
+        return new PropertiesMetadataView(
+                ImmutableMap.of(
+                        "animation",
+                        new PropertiesMetadataView.Value(new PropertiesMetadataView(
+                                ImmutableMap.of(
+                                        PARTS_KEY,
+                                        new PropertiesMetadataView.Value(new PropertiesMetadataView(
+                                                ImmutableMap.of(
+                                                        "0",
+                                                        new PropertiesMetadataView.Value(new PropertiesMetadataView(
+                                                                ImmutableMap.copyOf(metadata)
+                                                        ))
+                                                )
+                                        ))
+                                )
+                        ))
                 )
         );
     }
@@ -463,13 +527,8 @@ public final class PropertiesMetadataParser implements MetadataParser {
      * @return path as a {@link ResourceLocation}
      * @throws InvalidMetadataException if the path cannot be converted to a valid {@link ResourceLocation}
      */
-    private static ResourceLocation convertToLocation(ResourceRepository.Pack pack, String path,
-                                                      ResourceLocation metadataLocation)
+    private static ResourceLocation convertToLocation(String path, ResourceLocation metadataLocation)
             throws InvalidMetadataException {
-        if (path.equals(PACK_PNG.toString())) {
-            return pack.locateRootResource(PACK_PNG);
-        }
-
         try {
             return new ResourceLocation(expandPath(path, metadataLocation));
         } catch (ResourceLocationException err) {
