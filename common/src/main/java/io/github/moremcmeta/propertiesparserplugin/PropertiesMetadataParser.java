@@ -88,7 +88,7 @@ public final class PropertiesMetadataParser implements MetadataParser {
     @Override
     public Map<? extends RootResourceName, ? extends Map<? extends RootResourceName, ? extends MetadataView>> parse(
             ResourceRepository.Pack pack) {
-        Map<RootResourceName, MetadataView> anims = new HashMap<>();
+        Map<RootResourceName, Map<RootResourceName, MetadataView>> anims = new HashMap<>();
         int index = 0;
 
         while (true) {
@@ -118,11 +118,11 @@ public final class PropertiesMetadataParser implements MetadataParser {
                     new PropertiesMetadataView.Value(imageStream))
             );
 
-            anims.put(animName, readAnimationFile(metadata, props));
+            anims.put(animName, ImmutableMap.of(new RootResourceName("pack.png"), readAnimationFile(metadata, props)));
             index++;
         }
 
-        return ImmutableMap.of(new RootResourceName("pack.png"), anims);
+        return anims;
     }
 
     @Override
