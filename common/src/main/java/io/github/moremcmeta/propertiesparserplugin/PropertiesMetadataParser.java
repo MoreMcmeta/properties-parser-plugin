@@ -339,7 +339,7 @@ public final class PropertiesMetadataParser implements MetadataParser {
     private static MetadataView readAnimationFile(Map<String, PropertiesMetadataView.Value> metadata, Properties props) {
         putIfValPresent(metadata, props, "w", "width", Function.identity());
         putIfValPresent(metadata, props, "h", "height", Function.identity());
-        putIfValPresent(metadata, props, "duration", "frameTime", Function.identity());
+        putIfValPresent(metadata, props, "duration", "frametime", Function.identity());
         buildFrameList(props).ifPresent((value) -> metadata.put("frames", value));
 
         return new PropertiesMetadataView(
