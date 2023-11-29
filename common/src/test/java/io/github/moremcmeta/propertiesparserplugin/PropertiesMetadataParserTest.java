@@ -646,6 +646,143 @@ public final class PropertiesMetadataParserTest {
     }
 
     @Test
+    public void parse_OverlayHasDefaultAnimationInPackBelow_DefaultAnimIgnored() throws InvalidMetadataException {
+        Map<ResourceLocation, MetadataView> views = PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                makePropertiesStream(
+                        "suffix.emissive=_e"
+                ),
+                new MockResourceRepository(
+                        ImmutableList.of(
+                                ImmutableSet.of(
+                                        new ResourceLocation("textures/optifine/eyes.png"),
+                                        new ResourceLocation("textures/optifine/eyes_e.png")
+                                ),
+                                ImmutableSet.of(
+                                        new ResourceLocation("textures/test.png"),
+                                        new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                                        new ResourceLocation("optifine/emissive.properties"),
+                                        new ResourceLocation("textures/entity/witch.png"),
+                                        new ResourceLocation("textures/entity/witch_f.png"),
+                                        new ResourceLocation("textures/entity/bee_e.png"),
+                                        new ResourceLocation("textures/entity/dolphin_e"),
+                                        new ResourceLocation("textures/optifine/eyes.png.mcmeta"),
+                                        new ResourceLocation("textures/optifine/eyes_e.png.mcmeta")
+                                ),
+                                ImmutableSet.of(
+                                        new ResourceLocation("moremcmeta", "textures/dummy.png"),
+                                        new ResourceLocation("textures/test_e.png")
+                                )
+                        ),
+                        new ByteArrayInputStream("{ \"animation\": {} }".getBytes())
+                )
+        );
+
+        assertEquals(4, views.size());
+        assertFalse(views.get(new ResourceLocation("textures/optifine/eyes.png")).hasKey("animation"));
+
+        MetadataView view1 = views.get(new ResourceLocation("textures/optifine/eyes.png"))
+                .subView("overlay").get();
+        MetadataView view2 = views.get(new ResourceLocation("moremcmeta", "textures/dummy.png"))
+                .subView("overlay").get();
+        MetadataView view3 = views.get(new ResourceLocation("textures/test.png"))
+                .subView("overlay").get();
+        MetadataView view4 = views.get(new ResourceLocation("textures/entity/bee.png"))
+                .subView("overlay").get();
+
+        assertTrue(view1.booleanValue("emissive").get());
+        assertTrue(view2.booleanValue("emissive").get());
+        assertTrue(view3.booleanValue("emissive").get());
+        assertTrue(view4.booleanValue("emissive").get());
+
+        assertEquals(
+                new ResourceLocation("textures/optifine/eyes_e.png"),
+                new ResourceLocation(view1.stringValue("texture").get())
+        );
+        assertEquals(
+                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                new ResourceLocation(view2.stringValue("texture").get())
+        );
+        assertEquals(
+                new ResourceLocation("textures/test_e.png"),
+                new ResourceLocation(view3.stringValue("texture").get())
+        );
+        assertEquals(
+                new ResourceLocation("textures/entity/bee_e.png"),
+                new ResourceLocation(view4.stringValue("texture").get())
+        );
+    }
+
+    @Test
+    public void parse_OverlayHasDefaultAnimationInSamePack_DefaultAnimUsed() throws InvalidMetadataException {
+        Map<ResourceLocation, MetadataView> views = PARSER.parse(
+                new ResourceLocation("optifine/emissive.properties"),
+                makePropertiesStream(
+                        "suffix.emissive=_e"
+                ),
+                new MockResourceRepository(
+                        ImmutableList.of(
+                                ImmutableSet.of(
+                                        new ResourceLocation("textures/optifine/eyes.png"),
+                                        new ResourceLocation("textures/optifine/eyes_e.png"),
+                                        new ResourceLocation("textures/optifine/eyes_e.png.mcmeta")
+                                ),
+                                ImmutableSet.of(
+                                        new ResourceLocation("textures/test.png"),
+                                        new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                                        new ResourceLocation("optifine/emissive.properties"),
+                                        new ResourceLocation("textures/entity/witch.png"),
+                                        new ResourceLocation("textures/entity/witch_f.png"),
+                                        new ResourceLocation("textures/entity/bee_e.png"),
+                                        new ResourceLocation("textures/entity/dolphin_e"),
+                                        new ResourceLocation("textures/optifine/eyes.png.mcmeta")
+                                ),
+                                ImmutableSet.of(
+                                        new ResourceLocation("moremcmeta", "textures/dummy.png"),
+                                        new ResourceLocation("textures/test_e.png")
+                                )
+                        ),
+                        new ByteArrayInputStream("{ \"animation\": {} }".getBytes())
+                )
+        );
+
+        assertEquals(5, views.size());
+        assertFalse(views.get(new ResourceLocation("textures/optifine/eyes.png")).hasKey("animation"));
+
+        MetadataView view1 = views.get(new ResourceLocation("textures/optifine/eyes.png"))
+                .subView("overlay").get();
+        MetadataView view2 = views.get(new ResourceLocation("moremcmeta", "textures/dummy.png"))
+                .subView("overlay").get();
+        MetadataView view3 = views.get(new ResourceLocation("textures/test.png"))
+                .subView("overlay").get();
+        MetadataView view4 = views.get(new ResourceLocation("textures/entity/bee.png"))
+                .subView("overlay").get();
+        assertTrue(views.get(new ResourceLocation("textures/optifine/eyes_e.png")).subView("animation").isPresent());
+
+        assertTrue(view1.booleanValue("emissive").get());
+        assertTrue(view2.booleanValue("emissive").get());
+        assertTrue(view3.booleanValue("emissive").get());
+        assertTrue(view4.booleanValue("emissive").get());
+
+        assertEquals(
+                new ResourceLocation("textures/optifine/eyes_e.png"),
+                new ResourceLocation(view1.stringValue("texture").get())
+        );
+        assertEquals(
+                new ResourceLocation("moremcmeta", "textures/dummy_e.png"),
+                new ResourceLocation(view2.stringValue("texture").get())
+        );
+        assertEquals(
+                new ResourceLocation("textures/test_e.png"),
+                new ResourceLocation(view3.stringValue("texture").get())
+        );
+        assertEquals(
+                new ResourceLocation("textures/entity/bee_e.png"),
+                new ResourceLocation(view4.stringValue("texture").get())
+        );
+    }
+
+    @Test
     public void parse_UsesAllAnimationProperties_AllParsed() throws InvalidMetadataException {
         Map<ResourceLocation, MetadataView> views = PARSER.parse(
                 new ResourceLocation("optifine/anim/creepereyes.properties"),

@@ -235,16 +235,31 @@ public final class PropertiesMetadataParser implements MetadataParser {
                 )
         );
 
-        return repository.list((fileName) -> fileName.endsWith(emissiveSuffix))
-                .stream()
-                .collect(Collectors.toMap(
-                        (overlayLocation) -> textureFromOverlay(overlayLocation, emissiveSuffix),
-                        (overlayLocation) -> addDefaultMetadata(
-                                textureFromOverlay(overlayLocation, emissiveSuffix),
-                                overlayToView.apply(overlayLocation),
-                                repository
-                        )
-                ));
+        Map<ResourceLocation, MetadataView> results = new HashMap<>();
+        repository.list((fileName) -> fileName.endsWith(emissiveSuffix))
+                .forEach((overlayLocation) -> {
+                    ResourceLocation baseLocation = textureFromOverlay(overlayLocation, emissiveSuffix);
+                    results.put(
+                            baseLocation,
+                            addDefaultMetadata(
+                                    baseLocation,
+                                    overlayToView.apply(overlayLocation),
+                                    repository
+                            )
+                    );
+
+                    MetadataView overlayMetadata = addDefaultMetadata(
+                            overlayLocation,
+                            new PropertiesMetadataView(ImmutableMap.of()),
+                            repository
+                    );
+
+                    if (overlayMetadata.size() > 0) {
+                        results.put(overlayLocation, overlayMetadata);
+                    }
+                });
+
+        return results;
     }
 
     /**
