@@ -12,6 +12,7 @@
     "sources": "https://github.com/MoreMcmeta/properties-parser-plugin"
   },
   "license": "LGPL-3.0",
+  "icon": "tricolor-zombie.png",
   "environment": "*",
   "entrypoints": {
     "moremcmeta-client": [
