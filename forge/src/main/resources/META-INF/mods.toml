@@ -10,7 +10,7 @@ authors = "soir20"
 description = '''
 Default plugin for MoreMcmeta that reads OptiFine (.properties) metadata files.
 '''
-#logoFile = ""
+logoFile="moremcmeta-logo-gradient.png"
 
 [[dependencies.moremcmeta_properties_parser_plugin]]
 modId = "moremcmeta"
